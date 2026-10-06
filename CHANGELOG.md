@@ -19,3 +19,8 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Created ProposalStatus.java which is an enum for all possible statuses (PENDING, APPROVED, REJECTED, EXECUTED)
 - Made constructor in StudentAppliction.java where booking and four spaces are built from Fixture.java instead of map used by starter. 
 - Implemented bookingSnapshot() and propose() methods in StudentAppliction.java
+
+### 2026-10-06
+- Made JUnit test case for valid booking hours (1 and 24)
+- Made JUnit test case for invalid booking hours (0 and 25)
+- Made JUnit test case for invalid booking id and space id
