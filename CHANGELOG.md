@@ -24,3 +24,7 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Made JUnit test case for valid booking hours (1 and 24)
 - Made JUnit test case for invalid booking hours (0 and 25)
 - Made JUnit test case for invalid booking id and space id
+- Made JUnit test case for eligible B12
+- Made JUnit test case for occupied D09
+- Made JUnit test case for null/unknown targetID
+- Made JUnit test case for unchanged booking state after proposing or rejecting

@@ -53,7 +53,7 @@ public final class StudentApplication {
             throw new IllegalArgumentException("Target cannot be booking's current space");
         }
         if (!target.isAvailable()) {
-            throw new IllegalArgumentException("Target space ("+ targetId +") is not available");
+            throw new IllegalArgumentException("Target space (" + targetId + ") is not available");
         }
 
         String proposalId = "P" + nextProposalNumber;

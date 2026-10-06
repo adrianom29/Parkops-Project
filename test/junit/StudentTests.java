@@ -11,7 +11,7 @@ public class StudentTests {
     @Test
     void acceptedBookingHours(){
         try {
-            Booking b1 = new Booking("TEST", "TEST", -1, 0, false);
+            Booking b1 = new Booking("TEST", "TEST", 1, 0, false);
             Booking b2 = new Booking("TEST", "TEST", 24, 0, false);
         } 
         catch (Exception e) {
@@ -39,6 +39,53 @@ public class StudentTests {
         assertThrows(IllegalArgumentException.class, () -> new Booking("TEST", "HasLowercase", 10, 0, false));
     }
 
-    
+    @Test 
+    void occupiedD09(){
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("D09")); //D09 is not available
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals("A17", sApp.bookingSnapshot().get("spaceId"));
+        assertEquals(0, sApp.bookingSnapshot().get("version"));
+    }
+
+    @Test
+    void eligibleB12(){
+        StudentApplication sApp = new StudentApplication();
+        ProposalView p = sApp.propose("B12");
+        assertEquals("PENDING", p.status());
+        assertEquals("B1", p.bookingId());
+        assertEquals("B12", p.targetId());
+        assertEquals(0, p.bookingVersion());
+        assertEquals(1, p.policyVersion());
+    }
+
+    @Test 
+    void unknownTarget(){
+        StudentApplication sApp = new StudentApplication();
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose(null));
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("Unknown"));
+    }
+
+    @Test
+    void bookingUnchangedAfterProposingOrRejecting(){
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+
+        sApp.propose("B12");
+        assertEquals(before, sApp.bookingSnapshot());
+
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("D09"));
+        assertEquals(before, sApp.bookingSnapshot());
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("A17"));
+        assertEquals(before, sApp.bookingSnapshot());
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("Z99"));
+        assertEquals(before, sApp.bookingSnapshot());
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("b12"));
+        assertEquals(before, sApp.bookingSnapshot());
+
+        assertEquals("A17", sApp.bookingSnapshot().get("spaceId"));
+        assertEquals(0, sApp.bookingSnapshot().get("version"));
+    }
 
 }
