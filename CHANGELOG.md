@@ -28,3 +28,5 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Made JUnit test case for occupied D09
 - Made JUnit test case for null/unknown targetID
 - Made JUnit test case for unchanged booking state after proposing or rejecting
+- Designed UML Diagram
+- Designed Sequence Diagram
