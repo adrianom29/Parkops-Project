@@ -17,15 +17,28 @@ public final class Main {
         try {
             if (mode.equals("scripted")) {
                 System.out.println("REPLAY D1 input: not a live model run; approval/execution are not invoked.");
-                ReplayProvider replay = new ReplayProvider(List.of(Fixture.proposalRequest("B12")));
-                var input = MiniJson.object(MiniJson.parse(replay.next(List.of(new ChatMessage("user", "Propose a replacement for B1")))));
-                ProposalView p = app.propose((String) input.get("targetId"));
-                System.out.println(p);
-                System.out.println("Booking: " + MiniJson.stringify(app.bookingSnapshot()));
-            } else if (mode.equals("agent-scripted")) {
+                ReplayProvider replay = new ReplayProvider(List.of(
+                        Fixture.proposalRequest("B12"),
+                        Fixture.proposalRequest("D09"),
+                        Fixture.proposalRequest("Z99")));
+                for (int i = 0; i < 3; i++) {
+                    var input = MiniJson.object(MiniJson.parse(replay.next(List.of(new ChatMessage("user", "Propose a replacement for B1")))));
+                    String target = (String) input.get("targetId");
+                    System.out.println("--- Proposed target: " + target);
+                    try {
+                        ProposalView p = app.propose(target);
+                        System.out.println(p);
+                    } catch (IllegalArgumentException ex) {
+                        System.out.println("REJECTED: " + ex.getMessage());
+                    }
+                    System.out.println("Booking: " + MiniJson.stringify(app.bookingSnapshot()));
+                }
+            } 
+            else if (mode.equals("agent-scripted")) {
                 System.out.println("REPLAY D2 workflow; not a live model run.");
                 System.out.println(app.run(Fixture.replay(), 6));
-            } else if (mode.equals("live")) {
+            } 
+            else if (mode.equals("live")) {
                 String host = System.getenv("OLLAMA_CHAT_URL"), model = System.getenv("OLLAMA_MODEL");
                 if (host == null || model == null || host.isBlank() || model.isBlank()) {
                     System.out.println("LIVE_RUN_PENDING_COURSE_ACCESS: configure the course-provided OLLAMA_CHAT_URL and OLLAMA_MODEL.");
@@ -33,11 +46,13 @@ public final class Main {
                 }
                 System.out.println("LIVE provider selected; outcome must be recorded from actual execution.");
                 System.out.println(app.run(new OllamaProvider(URI.create(host), model, Duration.ofSeconds(30)), 6));
-            } else {
+            } 
+            else {
                 System.err.println("Modes: fixture | scripted (D1) | agent-scripted (D2) | live (D2)");
                 System.exit(2);
             }
-        } catch (UnsupportedOperationException ex) {
+        } 
+        catch (UnsupportedOperationException ex) {
             System.err.println("STARTER_NOT_IMPLEMENTED: " + ex.getMessage());
             System.exit(1);
         }

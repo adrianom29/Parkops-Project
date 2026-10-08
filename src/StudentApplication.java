@@ -63,7 +63,7 @@ public final class StudentApplication {
 
         Space target = spaces.get(targetId);
         if (target == null) {
-            throw new IllegalArgumentException("Target space must not be null");
+            throw new IllegalArgumentException("Target space must not be null or unknown");
         }
         if (target.getId().equals(booking.getSpaceId())) {
             throw new IllegalArgumentException("Target cannot be booking's current space");

@@ -1,0 +1,70 @@
+Record actual commands, JDK version, date, and output here.
+
+./run.ps1 run scripted
+JDK 21
+Oct 7 2026
+
+REPLAY D1 input: not a live model run; approval/execution are not invoked.
+ProposalView[proposalId=P1, bookingId=B1, targetId=B12, bookingVersion=0, policyVersion=1, status=PENDING]
+Booking: {"requiresAccessible":true,"id":"B1","version":0,"durationHours":3,"spaceId":"A17"}
+
+
+./run.ps1 run scripted 
+(with uptated Main.java)
+JDK 21
+Oct 7 2026
+
+REPLAY D1 input: not a live model run; approval/execution are not invoked.
+--- Proposed target: B12
+ProposalView[proposalId=P1, bookingId=B1, targetId=B12, bookingVersion=0, policyVersion=1, status=PENDING]
+Booking: {"version":0,"id":"B1","requiresAccessible":true,"spaceId":"A17","durationHours":3}
+--- Proposed target: D09
+REJECTED: Target space (D09) is not available
+Booking: {"version":0,"id":"B1","requiresAccessible":true,"spaceId":"A17","durationHours":3}
+--- Proposed target: Z99
+REJECTED: Target space must not be null or unknown
+Booking: {"version":0,"id":"B1","requiresAccessible":true,"spaceId":"A17","durationHours":3}
+
+
+./run.ps1 check
+JDK 21
+Oct 7 2026
+
+PASS duration endpoints
+PASS invalid duration 0
+PASS invalid duration 25
+PASS invalid duration -1
+PASS invalid identifier null
+PASS invalid identifier 
+PASS invalid identifier b1
+PASS invalid identifier 1B
+PASS invalid identifier ABCDEFGHIJKLMNOPQ
+PASS valid identifiers
+PASS D1-C pending B12, no booking change
+PASS D1-D occupied D09 rejected unchanged
+PASS D1-E unknown target rejected unchanged
+PASS D1-F protected snapshot
+CHECKS 14; FAILED 0
+
+
+./run.ps1 test
+JDK 21
+Oct 7 2026
+
+Thanks for using JUnit! Support its development at https://junit.org/sponsoring
+
+INFRASTRUCTURE_CHECKS_PASS 31; localhost fake HTTP only; no live model or project solution verified.
+
+Test run finished after 540 ms
+[         7 containers found      ]
+[         0 containers skipped    ]
+[         7 containers started    ]
+[         0 containers aborted    ]
+[         7 containers successful ]
+[         0 containers failed     ]
+[        23 tests found           ]
+[         0 tests skipped         ]
+[        23 tests started         ]
+[         0 tests aborted         ]
+[        23 tests successful      ]
+[         0 tests failed          ]
