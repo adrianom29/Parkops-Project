@@ -41,6 +41,22 @@ public final class StudentApplication {
                 "requiresAccessible", booking.accessiblityRequirement());
     }
 
+    public Map<String, Object> spaceSnapshot(String spaceId) {
+        Space space = spaces.get(spaceId);
+        if (space == null) {
+            throw new IllegalArgumentException("Unknown space: " + spaceId);
+        }
+        return Map.of(
+                "id", space.getId(),
+                "open", space.isOpen(),
+                "occupied", space.isOccupied(),
+                "accessible", space.isAccessible());
+    }
+
+    public int proposalCount() {
+        return proposals.size();
+    }
+
     public ProposalView propose(String targetId) {
         // Validate everything before creating anything; the booking is never moved here.
         DomainRules.requireIdentifier(targetId);

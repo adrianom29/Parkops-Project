@@ -13,6 +13,8 @@ public class StudentTests {
         try {
             Booking b1 = new Booking("TEST", "TEST", 1, 0, false);
             Booking b2 = new Booking("TEST", "TEST", 24, 0, false);
+            assertEquals(1, b1.getDuration());
+            assertEquals(24, b2.getDuration());
         } 
         catch (Exception e) {
             fail(e);
@@ -43,10 +45,17 @@ public class StudentTests {
     void occupiedD09(){
         StudentApplication sApp = new StudentApplication();
         Map<String, Object> before = sApp.bookingSnapshot();
+        Map<String, Object> d09Before = sApp.spaceSnapshot("D09");
         assertThrows(IllegalArgumentException.class, () -> sApp.propose("D09")); //D09 is not available
-        assertEquals(before, sApp.bookingSnapshot());
-        assertEquals("A17", sApp.bookingSnapshot().get("spaceId"));
-        assertEquals(0, sApp.bookingSnapshot().get("version"));
+        
+        Map<String, Object> after = sApp.bookingSnapshot();
+        Map<String, Object> d09After = sApp.spaceSnapshot("D09");
+        assertEquals(before, after);
+        assertEquals("A17", after.get("spaceId"));
+        assertEquals(0, after.get("version"));
+        assertEquals(d09Before, d09After);
+        assertEquals(true, d09After.get("occupied"));
+        assertEquals(0, sApp.proposalCount());
     }
 
     @Test
@@ -63,8 +72,23 @@ public class StudentTests {
     @Test 
     void unknownTarget(){
         StudentApplication sApp = new StudentApplication();
-        assertThrows(IllegalArgumentException.class, () -> sApp.propose(null));
-        assertThrows(IllegalArgumentException.class, () -> sApp.propose("Unknown"));
+        Map<String, Object> before = sApp.bookingSnapshot();
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("Z99")); //valid ID, but no such space
+        
+        Map<String, Object> after = sApp.bookingSnapshot();
+        assertEquals(before, after);
+        assertEquals("A17", after.get("spaceId"));
+        assertEquals(0, after.get("version"));
+        assertEquals(0, sApp.proposalCount());
+    }
+
+    @Test
+    void protectedSnapshot(){
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> snapshot = sApp.bookingSnapshot();
+        assertThrows(UnsupportedOperationException.class, () -> snapshot.put("spaceId", "D09"));
+        assertEquals("A17", snapshot.get("spaceId"));
+        assertEquals(0, snapshot.get("version"));
     }
 
     @Test
@@ -73,8 +97,8 @@ public class StudentTests {
         Map<String, Object> before = sApp.bookingSnapshot();
 
         sApp.propose("B12");
-        assertEquals(before, sApp.bookingSnapshot());
 
+        assertEquals(before, sApp.bookingSnapshot());
         assertThrows(IllegalArgumentException.class, () -> sApp.propose("D09"));
         assertEquals(before, sApp.bookingSnapshot());
         assertThrows(IllegalArgumentException.class, () -> sApp.propose("A17"));

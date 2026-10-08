@@ -1,1 +1,10 @@
 Record actual commands, JDK version, date, and output here. No student run has been recorded yet.
+
+./run.ps1 run scripted
+JDK 21
+Oct 7 2026
+
+Output:
+REPLAY D1 input: not a live model run; approval/execution are not invoked.
+ProposalView[proposalId=P1, bookingId=B1, targetId=B12, bookingVersion=0, policyVersion=1, status=PENDING]
+Booking: {"requiresAccessible":true,"id":"B1","version":0,"durationHours":3,"spaceId":"A17"}

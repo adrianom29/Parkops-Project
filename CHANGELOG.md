@@ -30,3 +30,6 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Made JUnit test case for unchanged booking state after proposing or rejecting
 - Designed UML Diagram
 - Designed Sequence Diagram
+
+### 2026-10-06
+- Filled out TEST_PLAN.md for D1.A-F
