@@ -38,7 +38,7 @@ public final class StudentApplication {
                 "spaceId", booking.getSpaceId(),
                 "durationHours", booking.getDuration(),
                 "version", booking.getVersion(),
-                "requiresAccessible", booking.accessiblityRequirement());
+                "requiresAccessible", booking.accessibilityRequirement());
     }
 
     public Map<String, Object> spaceSnapshot(String spaceId) {

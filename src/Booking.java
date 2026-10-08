@@ -3,9 +3,9 @@ public final class Booking {
     private final String spaceId;
     private final int duration;
     private final int version;
-    private final boolean accessiblityRequirement;
+    private final boolean accessibilityRequirement;
 
-    public Booking(String id, String spaceId, int duration, int version, boolean accessiblityRequirement){
+    public Booking(String id, String spaceId, int duration, int version, boolean accessibilityRequirement){
         DomainRules.requireDuration(duration);
         
         DomainRules.requireIdentifier(id);
@@ -19,7 +19,7 @@ public final class Booking {
         this.spaceId = spaceId;
         this.duration = duration;
         this.version = version;
-        this.accessiblityRequirement = accessiblityRequirement;
+        this.accessibilityRequirement = accessibilityRequirement;
     }
 
     public String getId(){
@@ -38,8 +38,8 @@ public final class Booking {
         return version;
     }
 
-    public boolean accessiblityRequirement(){
-        return accessiblityRequirement;
+    public boolean accessibilityRequirement(){
+        return accessibilityRequirement;
     }
 
 }

@@ -34,5 +34,9 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 ### 2026-10-06
 - Filled out TEST_PLAN.md for D1.A-F
 - Updated Main.java for D1.3 
-    - Testing with B12, D09, and Z99 (unknown target)
+    - Testing with B12, D09, and unknown target (Z99)
 - Created results/d1.txt and filled it with commands and their outputs
+
+### 2026-10-07
+- Started working on D1.5
+    - 
