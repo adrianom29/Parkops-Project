@@ -39,4 +39,13 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 
 ### 2026-10-07
 - Started working on D1.5
-    - 
+    - Class responsibilties
+    - Reused and Implemented Infrastructure
+    - Diagrams
+
+### 2026-10-08
+- Finished D1.5
+    - Alternative considered
+    - Operation contracts
+    - Current Limitation
+- Put copies of all files/folders for sumbission in a zip file and submitted
