@@ -86,6 +86,11 @@ public final class StudentApplication {
         // TODO D2: validate protocol, dispatch tools, retain observation history,
         // bound invocations and stop at pending approval. No automatic commit.
         // Add separate operator approve/reject/execute operations and tick(time).
+
+        if (limit < 1 || limit > 6){
+            throw new IllegalArgumentException("Limit must be between 1 and 6");
+        }
+
         throw new UnsupportedOperationException("D2 model/tool coordination");
     }
     // TODO D3: evolve policy, preserve regressions, refactor and specify contracts.

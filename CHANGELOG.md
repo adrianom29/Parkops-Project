@@ -49,3 +49,8 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
     - Operation contracts
     - Current Limitation
 - Put copies of all files/folders for sumbission in a zip file and submitted
+
+## D2
+
+### 2026-10-24
+- Restricted limit to be between 1 and 6 in StudentApplication.run(). Throws IllegalArgumentException if out of range.
