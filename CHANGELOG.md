@@ -54,3 +54,11 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 
 ### 2026-10-24
 - Restricted limit to be between 1 and 6 in StudentApplication.run(). Throws IllegalArgumentException if out of range.
+
+### 2026-10-24
+- StudentApplication.run() rejects null providers
+- Made system message and added to ChatMessage history list
+- started loop
+    - called provider.next(history) and added result to history as assistant message
+    - Implemented cases for READ_BOOKING tool
+- made parseRequest helper method in StudentApplication.java

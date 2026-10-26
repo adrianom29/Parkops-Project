@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class StudentApplication {
 
@@ -86,12 +87,85 @@ public final class StudentApplication {
         // TODO D2: validate protocol, dispatch tools, retain observation history,
         // bound invocations and stop at pending approval. No automatic commit.
         // Add separate operator approve/reject/execute operations and tick(time).
+        
+        if (provider == null) {
+            return "REJECTED: provider must not be null";
+        }
 
         if (limit < 1 || limit > 6){
-            throw new IllegalArgumentException("Limit must be between 1 and 6");
+            return "REJEDCTED: Limit must be between 1 and 6";
         }
+
+        List<ChatMessage> history = new ArrayList<>();
+        ChatMessage systemMessage = new ChatMessage("system",
+            "You are a parking reassignment assistant for ParkOps.\r\n" + 
+            "Reply with exactly ONE JSON object and nothing else: no prose, no markdown.\r\n" + 
+            "The object must have exactly these three string fields:\r\n" + 
+            "  {\"tool\": \"...\", \"bookingId\": \"...\", \"targetId\": \"...\"}\r\n" + 
+            "\r\n" + 
+            "Allowed tools:\r\n" + 
+            "- READ_BOOKING: read the booking. targetId must be \"\".\r\n" + 
+            "- LIST_ALTERNATIVES: list candidate spaces. Only after READ_BOOKING. targetId must be \"\".\r\n" + 
+            "- PROPOSE_REASSIGNMENT: propose moving the booking to targetId (a space id like \"B12\").\r\n" + 
+            "- FINISH: stop without proposing. targetId must be \"\".\r\n" + 
+            "\r\n" + 
+            "Rules:\r\n" + 
+            "- bookingId must always be the booking you were given.\r\n" + 
+            "- Call READ_BOOKING before LIST_ALTERNATIVES.\r\n" + 
+            "- You may only PROPOSE. You cannot approve or execute; a human operator does that.\r\n" + 
+            "- After each tool call you will receive an OBSERVATION with the result. Use it to choose the next step.\r\n"
+        );
+        ChatMessage userMessage = new ChatMessage("user", 
+        "Booking B1 is in space A17, which is closed. Find a suitable replacement space and propose a reassignment.\r\n" );
+
+        history.add(systemMessage);
+        history.add(userMessage);
+
+        for (int i = 0; i < limit; i++){
+            try {
+                String reply = provider.next(history);
+                history.add(new ChatMessage("assistant", reply));
+                Map<String, Object> request = parseRequest(reply);
+                String tool = (String)request.get("tool");
+
+                switch (tool){
+                    case "READ_BOOKING":
+                        history.add(new ChatMessage("user", 
+                            MiniJson.stringify(Map.of("booking", bookingSnapshot(), "policyVersion", POLICY_VERSION))
+                        ));
+                        break;
+                    case "LIST_ALTERNATIVES":
+                        
+                        break;
+                    case "PROPOSE_REASSIGNMENT":
+                        break;
+                    case "FINISH":
+                        break;
+                    default:
+                        break;
+                }
+                
+
+            } 
+            catch (Exception e) {
+                history.add(new ChatMessage("user", "REJECTED: " + e.getMessage()));
+            }
+        }
+        
 
         throw new UnsupportedOperationException("D2 model/tool coordination");
     }
+
+    private Map<String, Object> parseRequest(String reply){     //helper method used in run()
+        Map<String, Object> request = MiniJson.object(MiniJson.parse(reply));
+        if (!request.keySet().equals(Set.of("tool", "bookingId", "targetId")) ||
+            !request.values().stream().allMatch(v -> v instanceof String) ||
+            !booking.getId().equals(request.get("bookingId"))){
+                throw new IllegalArgumentException("Malformed request");
+            }
+
+        return request;
+    }
+
     // TODO D3: evolve policy, preserve regressions, refactor and specify contracts.
 }
