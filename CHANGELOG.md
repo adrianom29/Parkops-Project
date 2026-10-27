@@ -69,3 +69,4 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
     - LIST_ALTERNATIVES requires a preceding read and returns candidates from the current state; reject or restart the investigation if the captured versions are stale. 
     - PROPOSE_REASSIGNMENT requires the read and list steps, validates the chosen target and captured versions, creates one pending proposal, and returns AWAITING_APPROVAL.
     - Tool loop rejects unknown tool
+- Wrote junit test case D2-A

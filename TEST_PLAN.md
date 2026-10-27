@@ -70,3 +70,103 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
 - Expected Result: Caller cannot mutate protected internal state
 - Actual Result: UnsupportedOperationException thrown upon attempting to put new key pair into snapshot. Snapshot remains the same
 - Source/Test Method: test/junit/StudentTests.protectedSnapshot()
+
+## D2:
+
+### D2.A:
+
+- 
+
+### D2.B:
+
+- 
+
+### D2.C:
+
+- 
+
+### D2.D:
+
+- 
+
+### D2.E:
+
+- 
+
+### D2.F:
+
+- 
+
+### D2.G:
+
+- 
+
+### D2.H:
+
+- 
+
+### D2.I:
+
+- 
+
+### D2.J:
+
+- 
+
+### D2.K:
+
+- 
+
+### D2.L:
+
+- 
+
+### D2.M:
+
+- 
+
+### D2.N:
+
+- 
+
+## D3:
+
+### D3.A:
+
+- 
+
+### D3.B:
+
+- 
+
+### D3.C:
+
+- 
+
+### D3.D:
+
+- 
+
+### D3.E:
+
+- 
+
+### D3.F:
+
+- 
+
+### D3.G:
+
+- 
+
+### D3.H:
+
+- 
+
+### D3.I:
+
+- 
+
+### D3.J:
+
+- 

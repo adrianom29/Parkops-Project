@@ -8,6 +8,12 @@ import org.junit.jupiter.api.Test;
 
 public class StudentTests { 
 
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                            B1 test cases (A-F)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
     @Test
     void acceptedBookingHours(){
         try {
@@ -112,4 +118,143 @@ public class StudentTests {
         assertEquals(0, sApp.bookingSnapshot().get("version"));
     }
 
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                            B2 test cases (A-N)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+    @Test //D2-A
+    void readListProposeB12(){
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        ReplayProvider provider = Fixture.replay();
+
+        sApp.run(provider, 6);
+
+        assertEquals(1, sApp.proposalCount());
+        assertEquals(before, sApp.bookingSnapshot());
+    }
+
+    @Test //D2-B
+    void executePendingProposal(){
+        fail();
+    }
+
+    @Test //D2-C
+    void approveAndExecuteValidProposal(){
+        fail();
+    }
+    
+    @Test //D2-D
+    void executeCommittedProposalAgain(){
+        fail();
+    }
+    
+    @Test //D2-E
+    void rejectAndExecutePendingProposal(){
+        fail();
+    }
+    
+    @Test //D2-F
+    void changeBookingVersionAfterProposal(){
+        fail();
+    }
+    
+    @Test //D2-G
+    void closeTargetAfterProposal(){
+        fail();
+    }
+    
+    @Test //D2-H
+    void malinformedJSON(){
+        fail();
+    }
+    
+    @Test //D2-I
+    void unknownTool(){
+        fail();
+    }
+    
+    @Test //D2-J
+    void stepLimit(){
+        fail();
+    }
+    
+    @Test //D2-K
+    void providerError(){
+        fail();
+    }
+    
+    @Test //D2-L
+    void ticksWithUnchangedVersions(){
+        fail();
+    }
+    
+    @Test //D2-M
+    void tickBelowPreviousTime(){
+        fail();
+    }
+    
+    @Test //D2-N
+    void realModelRun(){
+        fail();
+    }
+    
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                            B3 test cases (A-J)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+/* 
+    @Test //D3-A
+    void policy1FixureB1(){
+        fail();
+    }
+
+    @Test //D3-B
+    void activatePolicy2(){
+        fail();
+    }
+
+    @Test //D3-C
+    void version1ApprovedProposalThenPolicy2(){
+        fail();
+    }
+    
+    @Test //D3-D
+    void version2ProposalToB12(){
+        fail();
+    }
+    
+    @Test //D3-E
+    void version2ProposalToC09(){
+        fail();
+    }
+    
+    @Test //D3-F
+    void repeatD3E(){
+        fail();
+    }
+    
+    @Test //D3-G
+    void nonAccessibilityRequiringBooking(){
+        fail();
+    }
+    
+    @Test //D3-H
+    void ignorePolicyProposeB12(){
+        fail();
+    }
+    
+    @Test //D3-I
+    void periodicTickAfterPolicyVersionChange(){
+        fail();
+    }
+    
+    @Test //D3-J
+    void contractedAttemptBudgetReachesLimit(){
+        fail();
+    }
+*/
 }
