@@ -55,10 +55,17 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 ### 2026-10-24
 - Restricted limit to be between 1 and 6 in StudentApplication.run(). Throws IllegalArgumentException if out of range.
 
-### 2026-10-24
+### 2026-10-26
 - StudentApplication.run() rejects null providers
 - Made system message and added to ChatMessage history list
 - started loop
     - called provider.next(history) and added result to history as assistant message
     - Implemented cases for READ_BOOKING tool
 - made parseRequest helper method in StudentApplication.java
+
+### 2026 10 27
+- In run() tool loop:
+    - FINISH returns NO_ACTION without changing a booking
+    - LIST_ALTERNATIVES requires a preceding read and returns candidates from the current state; reject or restart the investigation if the captured versions are stale. 
+    - PROPOSE_REASSIGNMENT requires the read and list steps, validates the chosen target and captured versions, creates one pending proposal, and returns AWAITING_APPROVAL.
+    - Tool loop rejects unknown tool

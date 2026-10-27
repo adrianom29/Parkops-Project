@@ -87,82 +87,162 @@ public final class StudentApplication {
         // TODO D2: validate protocol, dispatch tools, retain observation history,
         // bound invocations and stop at pending approval. No automatic commit.
         // Add separate operator approve/reject/execute operations and tick(time).
-        
+
         if (provider == null) {
             return "REJECTED: provider must not be null";
         }
 
-        if (limit < 1 || limit > 6){
-            return "REJEDCTED: Limit must be between 1 and 6";
+        if (limit < 1 || limit > 6) {
+            return "REJECTED: Limit must be between 1 and 6";
         }
 
         List<ChatMessage> history = new ArrayList<>();
-        ChatMessage systemMessage = new ChatMessage("system",
-            "You are a parking reassignment assistant for ParkOps.\r\n" + 
-            "Reply with exactly ONE JSON object and nothing else: no prose, no markdown.\r\n" + 
-            "The object must have exactly these three string fields:\r\n" + 
-            "  {\"tool\": \"...\", \"bookingId\": \"...\", \"targetId\": \"...\"}\r\n" + 
-            "\r\n" + 
-            "Allowed tools:\r\n" + 
-            "- READ_BOOKING: read the booking. targetId must be \"\".\r\n" + 
-            "- LIST_ALTERNATIVES: list candidate spaces. Only after READ_BOOKING. targetId must be \"\".\r\n" + 
-            "- PROPOSE_REASSIGNMENT: propose moving the booking to targetId (a space id like \"B12\").\r\n" + 
-            "- FINISH: stop without proposing. targetId must be \"\".\r\n" + 
-            "\r\n" + 
-            "Rules:\r\n" + 
-            "- bookingId must always be the booking you were given.\r\n" + 
-            "- Call READ_BOOKING before LIST_ALTERNATIVES.\r\n" + 
-            "- You may only PROPOSE. You cannot approve or execute; a human operator does that.\r\n" + 
-            "- After each tool call you will receive an OBSERVATION with the result. Use it to choose the next step.\r\n"
-        );
-        ChatMessage userMessage = new ChatMessage("user", 
-        "Booking B1 is in space A17, which is closed. Find a suitable replacement space and propose a reassignment.\r\n" );
 
-        history.add(systemMessage);
-        history.add(userMessage);
+        //system message
+        history.add(new ChatMessage("system",
+                "You are a parking reassignment assistant for ParkOps.\r\n"
+                + "Reply with exactly ONE JSON object and nothing else: no prose, no markdown.\r\n"
+                + "The object must have exactly these three string fields:\r\n"
+                + "  {\"tool\": \"...\", \"bookingId\": \"...\", \"targetId\": \"...\"}\r\n"
+                + "\r\n"
+                + "Allowed tools:\r\n"
+                + "- READ_BOOKING: read the booking. targetId must be \"\".\r\n"
+                + "- LIST_ALTERNATIVES: list candidate spaces. Only after READ_BOOKING. targetId must be \"\".\r\n"
+                + "- PROPOSE_REASSIGNMENT: propose moving the booking to targetId (a space id like \"B12\").\r\n"
+                + "- FINISH: stop without proposing. targetId must be \"\".\r\n"
+                + "\r\n"
+                + "Rules:\r\n"
+                + "- bookingId must always be the booking you were given.\r\n"
+                + "- Call READ_BOOKING before LIST_ALTERNATIVES.\r\n"
+                + "- You may only PROPOSE. You cannot approve or execute; a human operator does that.\r\n"
+                + "- After each tool call you will receive an OBSERVATION with the result. Use it to choose the next step.\r\n"
+        ));
+        //user message
+        history.add(new ChatMessage("user",
+                "Booking B1 is in space A17, which is closed. Find a suitable replacement space and propose a reassignment.\r\n"));
 
-        for (int i = 0; i < limit; i++){
+
+        int bookingVersion = -1;
+        int policyVersion = -1;
+        List<String> candidates = null;
+        int invalid = 0;
+
+        for (int i = 0; i < limit; i++) {
+            String reply;
             try {
-                String reply = provider.next(history);
-                history.add(new ChatMessage("assistant", reply));
-                Map<String, Object> request = parseRequest(reply);
-                String tool = (String)request.get("tool");
+                reply = provider.next(history);
+            } catch (InterruptedException e) {
+                return "PROVIDER_ERROR: interrupted (calls = " + (i + 1) + ", invalid = " + invalid + ")";
+            } catch (Exception e) {
+                return "PROVIDER_ERROR: " + e.getMessage() + " (calls = " + (i + 1) + ", invalid = " + invalid + ")";
+            }
 
-                switch (tool){
-                    case "READ_BOOKING":
-                        history.add(new ChatMessage("user", 
-                            MiniJson.stringify(Map.of("booking", bookingSnapshot(), "policyVersion", POLICY_VERSION))
-                        ));
-                        break;
-                    case "LIST_ALTERNATIVES":
-                        
-                        break;
-                    case "PROPOSE_REASSIGNMENT":
-                        break;
-                    case "FINISH":
-                        break;
-                    default:
-                        break;
-                }
-                
+            if (reply == null) {
+                invalid++;
+                history.add(new ChatMessage("user", "REJECTED: empty reply"));
+                continue;
+            }
+            history.add(new ChatMessage("assistant", reply));
 
-            } 
-            catch (Exception e) {
+            Map<String, Object> request;
+            try {
+                request = parseRequest(reply);
+            } catch (IllegalArgumentException e) {
+                invalid++;
                 history.add(new ChatMessage("user", "REJECTED: " + e.getMessage()));
+                continue;
+            }
+
+            String tool = (String) request.get("tool");
+            String targetId = (String) request.get("targetId");
+
+            if (tool.equals("FINISH")) {
+                return "NO_ACTION: calls = " + (i + 1) + ", invalid = " + invalid;
+            }
+            
+            else if (tool.equals("READ_BOOKING")) {
+                bookingVersion = booking.getVersion();
+                policyVersion = POLICY_VERSION;
+                candidates = null;
+                history.add(new ChatMessage("user",
+                        MiniJson.stringify(Map.of(
+                                "booking", bookingSnapshot(),
+                                "policyVersion", POLICY_VERSION))
+                ));
+            } 
+            
+            else if (tool.equals("LIST_ALTERNATIVES")) {
+                if (bookingVersion == -1) {
+                    history.add(new ChatMessage("user", "REJECTED: READ_BOOKING must be before LIST_ALTERNATIVES"));
+                    invalid++;
+                } 
+                else if (bookingVersion != booking.getVersion() || policyVersion != POLICY_VERSION) {
+                    history.add(new ChatMessage("user", "Stale version, investigation restarting, READ_BOOKING must be called again"));
+                    bookingVersion = -1;
+                    policyVersion = -1;
+                    candidates = null;
+                } 
+                else {
+                    candidates = new ArrayList<>();
+                    for (Space space : spaces.values()) {
+                        if (space.isAvailable() && !space.getId().equals(booking.getSpaceId())) {
+                            candidates.add(space.getId());
+                        }
+                    }
+                    history.add(new ChatMessage("user", MiniJson.stringify(Map.of("candidates", candidates))));
+                }
+            } 
+            
+            else if (tool.equals("PROPOSE_REASSIGNMENT")) {
+                if (bookingVersion == -1 || candidates == null) {
+                    invalid++;
+                    history.add(new ChatMessage("user", "REJECTED: READ_BOOKING then LIST_ALTERNATIVES must be before PROPOSE_REASSIGNMENT"));
+                } 
+                else if (bookingVersion != booking.getVersion() || policyVersion != POLICY_VERSION) {
+                    history.add(new ChatMessage("user", "Stale version, investigation restarting, READ_BOOKING must be called again"));
+                    bookingVersion = -1;
+                    policyVersion = -1;
+                    candidates = null;
+                } 
+                else if (!candidates.contains(targetId)) {
+                    invalid++;
+                    history.add(new ChatMessage("user", "REJECTED: targetId was not a listed candidate"));
+                } 
+                else {
+                    try {
+                        ProposalView p = propose(targetId); 
+                        return "AWAITING_APPROVAL: " + p + " calls = " + (i + 1) + " invalid=" + invalid;
+                    } catch (IllegalArgumentException ex) {
+                        invalid++;
+                        history.add(new ChatMessage("user", "REJECTED: " + ex.getMessage()));
+                    }
+                }
+            }
+
+            //default (if unknown tool)
+            else{
+                invalid++;
+                history.add(new ChatMessage("user", "REJECTED: unknown tool " + tool));
             }
         }
-        
-
-        throw new UnsupportedOperationException("D2 model/tool coordination");
+        return "STEP_LIMIT: no proposal (calls = " + limit + ", invalid = " + invalid + ")";
+        //throw new UnsupportedOperationException("D2 model/tool coordination");
     }
 
-    private Map<String, Object> parseRequest(String reply){     //helper method used in run()
+    private Map<String, Object> parseRequest(String reply) {     //helper method used in run()
         Map<String, Object> request = MiniJson.object(MiniJson.parse(reply));
         if (!request.keySet().equals(Set.of("tool", "bookingId", "targetId")) ||
             !request.values().stream().allMatch(v -> v instanceof String) ||
-            !booking.getId().equals(request.get("bookingId"))){
-                throw new IllegalArgumentException("Malformed request");
-            }
+            !booking.getId().equals(request.get("bookingId"))) {
+
+            throw new IllegalArgumentException("Malformed request");
+        }
+        if (!request.get("tool").equals("PROPOSE_REASSIGNMENT") && 
+            !request.get("targetId").equals("")) {
+
+            throw new IllegalArgumentException("targetId must be empty for " + request.get("tool"));
+        }
+
 
         return request;
     }
