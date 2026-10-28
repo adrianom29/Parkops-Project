@@ -70,3 +70,10 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
     - PROPOSE_REASSIGNMENT requires the read and list steps, validates the chosen target and captured versions, creates one pending proposal, and returns AWAITING_APPROVAL.
     - Tool loop rejects unknown tool
 - Wrote junit test case D2-A
+
+### 2026 10 28
+- Started execute(), approve(), and reject() functions in StudentApplication
+- added toView() function to Proposal.java that creates ProposalView object
+- Wrote junit test case D2-B
+- combined approve() and reject() into evaluate(String, proposalId, boolean approve) to avoid duplicate code
+- Wrote junit test cases D2-C and D2-D

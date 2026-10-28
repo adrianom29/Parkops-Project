@@ -4,7 +4,7 @@ public class Proposal {
     private final String spaceId;
     private final int bookingVersion;
     private final int policyVersion;
-    private final ProposalStatus status;
+    private ProposalStatus status;
 
     public Proposal(String id, String bookingId, String spaceId, int bookingVersion, int policyVersion){
         DomainRules.requireIdentifier(id);
@@ -49,6 +49,15 @@ public class Proposal {
 
     public ProposalStatus getStatus(){
         return status;
+    }
+
+    public void setStatus(ProposalStatus status){
+        this.status = status;
+    }
+
+    public ProposalView toView(){
+        return new ProposalView(id, bookingId, spaceId, bookingVersion, policyVersion, status.name());
+
     }
 
 }

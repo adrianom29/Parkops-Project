@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 
 public final class StudentApplication {
@@ -11,7 +12,7 @@ public final class StudentApplication {
 
     private final Booking booking;
     private final Map<String, Space> spaces = new LinkedHashMap<>();
-    private final List<Proposal> proposals = new ArrayList<>();
+    private final HashMap<String, Proposal> proposals = new HashMap<>();
     private int nextProposalNumber = 1;
 
     public StudentApplication() {
@@ -77,10 +78,9 @@ public final class StudentApplication {
         Proposal proposal = new Proposal(proposalId, booking.getId(), target.getId(),
                 booking.getVersion(), POLICY_VERSION);
         nextProposalNumber++;
-        proposals.add(proposal);
+        proposals.put(proposalId, proposal);
 
-        return new ProposalView(proposal.getId(), proposal.getBookingId(), proposal.getSpaceId(),
-                proposal.getBookingVersion(), proposal.getPolicyVersion(), proposal.getStatus().name());
+        return proposal.toView();
     }
 
     public String run(ModelProvider provider, int limit) {
@@ -121,7 +121,6 @@ public final class StudentApplication {
         history.add(new ChatMessage("user",
                 "Booking B1 is in space A17, which is closed. Find a suitable replacement space and propose a reassignment.\r\n"));
 
-
         int bookingVersion = -1;
         int policyVersion = -1;
         List<String> candidates = null;
@@ -158,9 +157,7 @@ public final class StudentApplication {
 
             if (tool.equals("FINISH")) {
                 return "NO_ACTION: calls = " + (i + 1) + ", invalid = " + invalid;
-            }
-            
-            else if (tool.equals("READ_BOOKING")) {
+            } else if (tool.equals("READ_BOOKING")) {
                 bookingVersion = booking.getVersion();
                 policyVersion = POLICY_VERSION;
                 candidates = null;
@@ -169,20 +166,16 @@ public final class StudentApplication {
                                 "booking", bookingSnapshot(),
                                 "policyVersion", POLICY_VERSION))
                 ));
-            } 
-            
-            else if (tool.equals("LIST_ALTERNATIVES")) {
+            } else if (tool.equals("LIST_ALTERNATIVES")) {
                 if (bookingVersion == -1) {
                     history.add(new ChatMessage("user", "REJECTED: READ_BOOKING must be before LIST_ALTERNATIVES"));
                     invalid++;
-                } 
-                else if (bookingVersion != booking.getVersion() || policyVersion != POLICY_VERSION) {
+                } else if (bookingVersion != booking.getVersion() || policyVersion != POLICY_VERSION) {
                     history.add(new ChatMessage("user", "Stale version, investigation restarting, READ_BOOKING must be called again"));
                     bookingVersion = -1;
                     policyVersion = -1;
                     candidates = null;
-                } 
-                else {
+                } else {
                     candidates = new ArrayList<>();
                     for (Space space : spaces.values()) {
                         if (space.isAvailable() && !space.getId().equals(booking.getSpaceId())) {
@@ -191,36 +184,29 @@ public final class StudentApplication {
                     }
                     history.add(new ChatMessage("user", MiniJson.stringify(Map.of("candidates", candidates))));
                 }
-            } 
-            
-            else if (tool.equals("PROPOSE_REASSIGNMENT")) {
+            } else if (tool.equals("PROPOSE_REASSIGNMENT")) {
                 if (bookingVersion == -1 || candidates == null) {
                     invalid++;
                     history.add(new ChatMessage("user", "REJECTED: READ_BOOKING then LIST_ALTERNATIVES must be before PROPOSE_REASSIGNMENT"));
-                } 
-                else if (bookingVersion != booking.getVersion() || policyVersion != POLICY_VERSION) {
+                } else if (bookingVersion != booking.getVersion() || policyVersion != POLICY_VERSION) {
                     history.add(new ChatMessage("user", "Stale version, investigation restarting, READ_BOOKING must be called again"));
                     bookingVersion = -1;
                     policyVersion = -1;
                     candidates = null;
-                } 
-                else if (!candidates.contains(targetId)) {
+                } else if (!candidates.contains(targetId)) {
                     invalid++;
                     history.add(new ChatMessage("user", "REJECTED: targetId was not a listed candidate"));
-                } 
-                else {
+                } else {
                     try {
-                        ProposalView p = propose(targetId); 
+                        ProposalView p = propose(targetId);
                         return "AWAITING_APPROVAL: " + p + " calls = " + (i + 1) + " invalid=" + invalid;
                     } catch (IllegalArgumentException ex) {
                         invalid++;
                         history.add(new ChatMessage("user", "REJECTED: " + ex.getMessage()));
                     }
                 }
-            }
-
-            //default (if unknown tool)
-            else{
+            } //default (if unknown tool)
+            else {
                 invalid++;
                 history.add(new ChatMessage("user", "REJECTED: unknown tool " + tool));
             }
@@ -231,20 +217,64 @@ public final class StudentApplication {
 
     private Map<String, Object> parseRequest(String reply) {     //helper method used in run()
         Map<String, Object> request = MiniJson.object(MiniJson.parse(reply));
-        if (!request.keySet().equals(Set.of("tool", "bookingId", "targetId")) ||
-            !request.values().stream().allMatch(v -> v instanceof String) ||
-            !booking.getId().equals(request.get("bookingId"))) {
+        if (!request.keySet().equals(Set.of("tool", "bookingId", "targetId"))
+                || !request.values().stream().allMatch(v -> v instanceof String)
+                || !booking.getId().equals(request.get("bookingId"))) {
 
             throw new IllegalArgumentException("Malformed request");
         }
-        if (!request.get("tool").equals("PROPOSE_REASSIGNMENT") && 
-            !request.get("targetId").equals("")) {
+        if (!request.get("tool").equals("PROPOSE_REASSIGNMENT")
+                && !request.get("targetId").equals("")) {
 
             throw new IllegalArgumentException("targetId must be empty for " + request.get("tool"));
         }
 
-
         return request;
+    }
+
+    public ProposalView evaluate(String proposalId, boolean approve){       //either approves or rejects proposal (called by client)
+        Proposal p = proposals.get(proposalId);
+        if (p == null){
+            throw new IllegalArgumentException("Invalid proposalId");
+        }
+        if (p.getStatus() != ProposalStatus.PENDING) {
+            throw new IllegalStateException("Proposal status must be PENDING in order to be rejected");
+        }
+
+        if (approve){
+            p.setStatus(ProposalStatus.APPROVED);
+            return p.toView();
+        }
+        p.setStatus(ProposalStatus.REJECTED);
+        return p.toView();
+    }
+
+    public String execute(String proposalId) {
+        Proposal p = proposals.get(proposalId);
+
+        if (p == null) {
+            return "Invalid proposal Id";
+        }
+        if (p.getStatus() == ProposalStatus.EXECUTED) {
+            return "Proposal " + p.getId() + " already executed";
+        }
+        if (p.getStatus() != ProposalStatus.APPROVED) {
+            return "Proposal " + p.getId() + " unsuccessfully executed: status must be APPROVED";
+        }
+        if (p.getBookingVersion() != booking.getVersion()){
+            return String.format("Proposal %s unsuccessfully executed: booking version must be %d", p.getId(), booking.getVersion());
+        }
+        
+        Space targetSpace = spaces.get(p.getSpaceId());
+        if (targetSpace == null || !targetSpace.isAvailable()){
+            return "Proposal " + p.getId() + " unsuccessfully executed: Target space not available";
+        }
+
+        booking.setSpaceId(targetSpace.getId());
+        booking.setVersion(booking.getVersion() + 1);
+        p.setStatus(ProposalStatus.EXECUTED);
+
+        return "Proposal " + p.getId() + " successfully executed";
     }
 
     // TODO D3: evolve policy, preserve regressions, refactor and specify contracts.

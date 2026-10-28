@@ -138,19 +138,35 @@ public class StudentTests {
 
     @Test //D2-B
     void executePendingProposal(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        sApp.propose("B12");
+        assertEquals(sApp.execute("P1"), "Proposal P1 unsuccessfully executed: status must be APPROVED");
     }
 
+    @Test
+    void executeInvalidProposal(){
+        StudentApplication sApp = new StudentApplication();
+        sApp.propose("B12");
+        assertEquals(sApp.execute("P999"), "Invalid proposal Id");
+    }
+ 
     @Test //D2-C
     void approveAndExecuteValidProposal(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        sApp.propose("B12");
+        sApp.evaluate("P1", true);
+        assertEquals(sApp.execute("P1"), "Proposal P1 successfully executed");
     }
     
     @Test //D2-D
     void executeCommittedProposalAgain(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        sApp.propose("B12");
+        sApp.evaluate("P1", true);
+        assertEquals(sApp.execute("P1"), "Proposal P1 successfully executed");
+        assertEquals(sApp.execute("P1"), "Proposal P1 already executed");
     }
-    
+/*     
     @Test //D2-E
     void rejectAndExecutePendingProposal(){
         fail();
@@ -200,7 +216,7 @@ public class StudentTests {
     void realModelRun(){
         fail();
     }
-    
+   */ 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                             B3 test cases (A-J)

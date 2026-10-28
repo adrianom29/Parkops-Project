@@ -1,8 +1,8 @@
 public final class Booking {
     private final String id; 
-    private final String spaceId;
+    private String spaceId;
     private final int duration;
-    private final int version;
+    private int version;
     private final boolean accessibilityRequirement;
 
     public Booking(String id, String spaceId, int duration, int version, boolean accessibilityRequirement){
@@ -30,12 +30,20 @@ public final class Booking {
         return spaceId;
     }
 
+    public void setSpaceId(String value){
+        this.spaceId = value;
+    }
+
     public int getDuration(){
         return duration;
     }
 
     public int getVersion(){
         return version;
+    }
+
+    public void setVersion(int value){
+        this.version = value;
     }
 
     public boolean accessibilityRequirement(){
