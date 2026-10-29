@@ -1,9 +1,9 @@
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Set;
 
 public final class StudentApplication {
@@ -14,6 +14,7 @@ public final class StudentApplication {
     private final Map<String, Space> spaces = new LinkedHashMap<>();
     private final HashMap<String, Proposal> proposals = new HashMap<>();
     private int nextProposalNumber = 1;
+    private int notifications = 0;
 
     public StudentApplication() {
         Map<String, Object> raw = Fixture.booking();
@@ -57,6 +58,10 @@ public final class StudentApplication {
 
     public int proposalCount() {
         return proposals.size();
+    }
+
+    public int notificationCount(){
+        return notifications;
     }
 
     public ProposalView propose(String targetId) {
@@ -274,6 +279,7 @@ public final class StudentApplication {
         booking.setVersion(booking.getVersion() + 1);
         p.setStatus(ProposalStatus.EXECUTED);
 
+        notifications++;
         return "Proposal " + p.getId() + " successfully executed";
     }
 

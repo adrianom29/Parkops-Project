@@ -76,4 +76,9 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - added toView() function to Proposal.java that creates ProposalView object
 - Wrote junit test case D2-B
 - combined approve() and reject() into evaluate(String, proposalId, boolean approve) to avoid duplicate code
-- Wrote junit test cases D2-C and D2-D
+- Wrote junit test case D2-C 
+- Wrote junit test case D2-D
+- Wrote junit test case D2-E
+- Wrote junit test case D2-I
+- Wrote junit test case D2-J
+- Wrote junit test case D2-K

@@ -3,6 +3,8 @@
 // The supplied wrapper is not a substitute for your own test design.
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -156,6 +158,7 @@ public class StudentTests {
         sApp.propose("B12");
         sApp.evaluate("P1", true);
         assertEquals(sApp.execute("P1"), "Proposal P1 successfully executed");
+        assertEquals(sApp.notificationCount(), 1);
     }
     
     @Test //D2-D
@@ -165,13 +168,19 @@ public class StudentTests {
         sApp.evaluate("P1", true);
         assertEquals(sApp.execute("P1"), "Proposal P1 successfully executed");
         assertEquals(sApp.execute("P1"), "Proposal P1 already executed");
-    }
-/*     
-    @Test //D2-E
-    void rejectAndExecutePendingProposal(){
-        fail();
+        assertEquals(sApp.notificationCount(), 1);
     }
     
+    @Test //D2-E
+    void rejectAndExecutePendingProposal(){
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        sApp.propose("B12");
+        sApp.evaluate("P1", false);
+        assertEquals(sApp.execute("P1"), "Proposal P1 unsuccessfully executed: status must be APPROVED");
+        assertEquals(before, sApp.bookingSnapshot());
+    }
+/*     
     @Test //D2-F
     void changeBookingVersionAfterProposal(){
         fail();
@@ -186,22 +195,49 @@ public class StudentTests {
     void malinformedJSON(){
         fail();
     }
-    
+ */  
     @Test //D2-I
     void unknownTool(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        ReplayProvider provider = new ReplayProvider(List.of(
+                "{\"tool\":\"READ_BOOKING\",\"bookingId\":\"B1\",\"targetId\":\"\"}",
+                "{\"tool\":\"LIST_ALTERNATIVES\",\"bookingId\":\"B1\",\"targetId\":\"\"}",
+                "{\"tool\":\"UNKNOWN_TOOL\",\"bookingId\":\"B1\",\"targetId\":\"\"}"
+                ));
+
+        assertEquals("STEP_LIMIT: no proposal (calls = 3, invalid = 1)", sApp.run(provider, 3));
+        assertEquals(before, sApp.bookingSnapshot());
     }
-    
+
+   
     @Test //D2-J
     void stepLimit(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        ReplayProvider provider = new ReplayProvider(List.of(
+                "{\"tool\":\"READ_BOOKING\",\"bookingId\":\"B1\",\"targetId\":\"\"}",
+                "{\"tool\":\"READ_BOOKING\",\"bookingId\":\"B1\",\"targetId\":\"\"}",
+                "{\"tool\":\"READ_BOOKING\",\"bookingId\":\"B1\",\"targetId\":\"\"}",
+                "{\"tool\":\"READ_BOOKING\",\"bookingId\":\"B1\",\"targetId\":\"\"}",
+                "{\"tool\":\"READ_BOOKING\",\"bookingId\":\"B1\",\"targetId\":\"\"}",
+                "{\"tool\":\"READ_BOOKING\",\"bookingId\":\"B1\",\"targetId\":\"\"}"
+                ));
+
+        assertEquals("STEP_LIMIT: no proposal (calls = 6, invalid = 0)", sApp.run(provider, 6));
+        assertEquals(before, sApp.bookingSnapshot());
     }
-    
+  
     @Test //D2-K
     void providerError(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        ReplayProvider provider = new ReplayProvider(List.of());
+
+        assertEquals("PROVIDER_ERROR: Replay exhausted after 0 responses (calls = 1, invalid = 0)", sApp.run(provider, 6));
+        assertEquals(before, sApp.bookingSnapshot());
     }
-    
+/*      
     @Test //D2-L
     void ticksWithUnchangedVersions(){
         fail();
