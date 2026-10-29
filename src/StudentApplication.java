@@ -88,6 +88,16 @@ public final class StudentApplication {
         return proposal.toView();
     }
 
+    public void openSpace(String spaceId){
+        Space s = spaces.get(spaceId);
+        s.open();
+    }
+
+    public void closeSpace(String spaceId){
+        Space s = spaces.get(spaceId);
+        s.close();
+    }
+
     public String run(ModelProvider provider, int limit) {
         // TODO D2: validate protocol, dispatch tools, retain observation history,
         // bound invocations and stop at pending approval. No automatic commit.
@@ -242,8 +252,12 @@ public final class StudentApplication {
         if (p == null){
             throw new IllegalArgumentException("Invalid proposalId");
         }
+        if (p.getStatus() == ProposalStatus.APPROVED || 
+            p.getStatus() == ProposalStatus.REJECTED) {
+            throw new IllegalStateException("Proposal has already been evaluated, cannot be evaluated twice");
+        }
         if (p.getStatus() != ProposalStatus.PENDING) {
-            throw new IllegalStateException("Proposal status must be PENDING in order to be rejected");
+            throw new IllegalStateException("Proposal status must be PENDING in order to be evaluated");
         }
 
         if (approve){
@@ -266,9 +280,15 @@ public final class StudentApplication {
         if (p.getStatus() != ProposalStatus.APPROVED) {
             return "Proposal " + p.getId() + " unsuccessfully executed: status must be APPROVED";
         }
+        if (p.getPolicyVersion() != POLICY_VERSION){
+            return String.format("Proposal %s unsuccessfully executed: policy version must be %d", p.getId(), POLICY_VERSION);
+        }
         if (p.getBookingVersion() != booking.getVersion()){
             return String.format("Proposal %s unsuccessfully executed: booking version must be %d", p.getId(), booking.getVersion());
         }
+        if (!p.getBookingId().equals(booking.getId())){
+            return String.format("Proposal %s unsuccessfully executed: proposal bookingId must be %s", p.getId(), booking.getId());
+        } 
         
         Space targetSpace = spaces.get(p.getSpaceId());
         if (targetSpace == null || !targetSpace.isAvailable()){

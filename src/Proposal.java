@@ -2,8 +2,8 @@ public class Proposal {
     private final String id;
     private final String bookingId;
     private final String spaceId;
-    private final int bookingVersion;
-    private final int policyVersion;
+    private int bookingVersion;
+    private int policyVersion;
     private ProposalStatus status;
 
     public Proposal(String id, String bookingId, String spaceId, int bookingVersion, int policyVersion){
@@ -41,6 +41,10 @@ public class Proposal {
 
     public int getBookingVersion(){
         return bookingVersion;
+    }
+    
+    public void setBookingVersion(int newVersion){
+        this.bookingVersion = newVersion;
     }
 
     public int getPolicyVersion(){

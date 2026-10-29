@@ -82,3 +82,14 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Wrote junit test case D2-I
 - Wrote junit test case D2-J
 - Wrote junit test case D2-K
+
+### 2026 10 29
+- Made specific IllegalStateException in evaluate() when proposal has already been appoved or rejected.
+- Added policy check in execute()
+- Added booking check in execute()
+- Added open and close setters in Space.java
+- Added openSpace and closeSpace methods in StudentApplication.java for client calls
+- Added setBookingVersion setter in Proposal.java
+- Wrote junit test case D2-F
+- Wrote junit test case D2-G
+- Wrote junit test case D2-H

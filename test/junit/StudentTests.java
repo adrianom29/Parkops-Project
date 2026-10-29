@@ -180,22 +180,52 @@ public class StudentTests {
         assertEquals(sApp.execute("P1"), "Proposal P1 unsuccessfully executed: status must be APPROVED");
         assertEquals(before, sApp.bookingSnapshot());
     }
-/*     
+    
     @Test //D2-F
     void changeBookingVersionAfterProposal(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        sApp.propose("B12");
+        sApp.propose("C03");
+        sApp.evaluate("P1", true);
+        sApp.evaluate("P2", true);
+        assertEquals("Proposal P1 successfully executed", sApp.execute("P1"));
+
+        Map<String, Object> before = sApp.bookingSnapshot();
+        assertEquals("Proposal P2 unsuccessfully executed: booking version must be 1", sApp.execute("P2"));
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(1, sApp.notificationCount());
     }
     
     @Test //D2-G
     void closeTargetAfterProposal(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        sApp.propose("B12");
+        sApp.closeSpace("B12");
+        
+        sApp.evaluate("P1", true);
+        assertEquals("Proposal P1 unsuccessfully executed: Target space not available", sApp.execute("P1"));
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.notificationCount());
     }
     
     @Test //D2-H
     void malinformedJSON(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        ReplayProvider provider = new ReplayProvider(List.of(
+                "{\"tool\":\"READ_BOOKING\",\"bookingId\":\"B1\",\"targetId\":\"\"}",
+                "{\"tool\":\"LIST_ALTERNATIVES\",\"bookingId\":\"B1\",\"targetId\":\"\"}",
+                "{\"tool\":\"PROPOSE_REASSIGNMENT\",\"bookingId\":\"B1\",\"targetId\":\"B12\",\"approved\":true}"
+                ));
+
+
+        assertEquals("STEP_LIMIT: no proposal (calls = 3, invalid = 1)", sApp.run(provider, 3));
+        assertEquals(0, sApp.proposalCount());
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.notificationCount());
     }
- */  
+   
     @Test //D2-I
     void unknownTool(){
         StudentApplication sApp = new StudentApplication();

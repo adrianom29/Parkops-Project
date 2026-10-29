@@ -1,6 +1,6 @@
 public class Space {
     private final String id;
-    private final boolean open;
+    private boolean open;
     private final boolean occupied; 
     private final boolean accessible;
 
@@ -28,4 +28,12 @@ public class Space {
     public boolean isAvailable(){
         return open && !occupied;
     }
+
+    public void open(){
+        this.open = true;
+    }
+    public void close(){
+        this.open = false;
+    }
+    
 }
