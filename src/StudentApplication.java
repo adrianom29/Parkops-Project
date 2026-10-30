@@ -1,20 +1,18 @@
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public final class StudentApplication {
 
     private static final int POLICY_VERSION = 1;
-
     private final Booking booking;
     private final Map<String, Space> spaces = new LinkedHashMap<>();
     private final HashMap<String, Proposal> proposals = new HashMap<>();
     private int nextProposalNumber = 1;
     private int notifications = 0;
+    private int prevTick = -1;
+    private int nextScanTime = 0;
+    private HashSet<String> workItems = new HashSet<>();
+    private static final int TICK_PERIOD = 60;
 
     public StudentApplication() {
         Map<String, Object> raw = Fixture.booking();
@@ -302,6 +300,44 @@ public final class StudentApplication {
         notifications++;
         return "Proposal " + p.getId() + " successfully executed";
     }
+
+    public String tick(int time){
+        if (time < 0){
+            return "REJECTED: time must be positive";
+        }
+        if (time < prevTick){
+            return "REJECED: time cannot be less than previous tick";
+        }
+        if (prevTick != -1 && time < nextScanTime){
+            prevTick = time;
+            return "Boundary not reached yet";
+        }
+        prevTick = time;
+
+        Space s = spaces.get(booking.getSpaceId());
+        if (s == null || s.isOpen()){
+            return "SCANNED: no bookings affected";
+        }
+
+        String key = String.format("%s:v%d:p%d", booking.getId(), booking.getVersion(), POLICY_VERSION);
+        if (workItems.contains(key)){
+            return "work item " + key + " has already been emitted";
+        }
+
+        for (Proposal p: proposals.values()){
+            if (p.getBookingId().equals(booking.getId()) &&
+                p.getPolicyVersion() == POLICY_VERSION &&
+                p.getBookingVersion() == booking.getVersion() &&
+                (p.getStatus() == ProposalStatus.APPROVED || p.getStatus() == ProposalStatus.PENDING)){
+
+                return "SCANNED: " + key + " not emitted";
+            }
+        }
+        
+        workItems.add(key);
+        return "Successfully scanned and emitted work item " + key;
+    }
+
 
     // TODO D3: evolve policy, preserve regressions, refactor and specify contracts.
 }

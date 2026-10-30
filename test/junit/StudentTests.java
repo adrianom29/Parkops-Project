@@ -291,52 +291,52 @@ public class StudentTests {
 /* 
     @Test //D3-A
     void policy1FixureB1(){
-        fail();
+        
     }
 
     @Test //D3-B
     void activatePolicy2(){
-        fail();
+        
     }
 
     @Test //D3-C
     void version1ApprovedProposalThenPolicy2(){
-        fail();
+        
     }
     
     @Test //D3-D
     void version2ProposalToB12(){
-        fail();
+
     }
     
     @Test //D3-E
     void version2ProposalToC09(){
-        fail();
+        
     }
     
     @Test //D3-F
     void repeatD3E(){
-        fail();
+        
     }
     
     @Test //D3-G
     void nonAccessibilityRequiringBooking(){
-        fail();
+        
     }
     
     @Test //D3-H
     void ignorePolicyProposeB12(){
-        fail();
+        
     }
     
     @Test //D3-I
     void periodicTickAfterPolicyVersionChange(){
-        fail();
+        
     }
     
     @Test //D3-J
     void contractedAttemptBudgetReachesLimit(){
-        fail();
+        
     }
 */
 }
