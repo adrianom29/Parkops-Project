@@ -303,16 +303,17 @@ public final class StudentApplication {
 
     public String tick(int time){
         if (time < 0){
-            return "REJECTED: time must be positive";
+            return "REJECTED: time cannot be a negative value";
         }
         if (time < prevTick){
-            return "REJECED: time cannot be less than previous tick";
+            return "REJECTED: time cannot be less than previous tick";
         }
         if (prevTick != -1 && time < nextScanTime){
             prevTick = time;
-            return "Boundary not reached yet";
+            return "NOT_SCANNED: Boundary not reached yet";
         }
         prevTick = time;
+        nextScanTime = time + TICK_PERIOD;
 
         Space s = spaces.get(booking.getSpaceId());
         if (s == null || s.isOpen()){
@@ -321,7 +322,7 @@ public final class StudentApplication {
 
         String key = String.format("%s:v%d:p%d", booking.getId(), booking.getVersion(), POLICY_VERSION);
         if (workItems.contains(key)){
-            return "work item " + key + " has already been emitted";
+            return "SCANNED: work item " + key + " has already been emitted";
         }
 
         for (Proposal p: proposals.values()){
@@ -338,6 +339,14 @@ public final class StudentApplication {
         return "Successfully scanned and emitted work item " + key;
     }
 
+    public String retry(String bookingId){
+        String key = String.format("%s:v%d:p%d", bookingId, booking.getVersion(), POLICY_VERSION);
+        if (!workItems.contains(key)){
+            return "REJECTED: " + key + " has never been emitted, cannot retry";
+        }
+        workItems.remove(key);
+        return "Next scan will emit " + key;
+    }
 
     // TODO D3: evolve policy, preserve regressions, refactor and specify contracts.
 }
