@@ -106,3 +106,4 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 ### 2026 11 2
 - Created and filled in results/d2.txt with outputs of tests (all passed)
 - Added result of ./run.ps1 run live command into results/d2.txt
+- Wrote test plans for all D2 test cases A-N in TEST_PLAN.md
