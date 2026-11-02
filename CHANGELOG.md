@@ -102,3 +102,7 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Wrote junit test case D2-L
 - Wrote junit test case D2-M
 - Wrote junit test case D2-N
+
+### 2026 11 2
+- Created and filled in results/d2.txt with outputs of tests (all passed)
+- Added result of ./run.ps1 run live command into results/d2.txt

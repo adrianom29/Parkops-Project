@@ -242,7 +242,6 @@ public class StudentTests {
         assertEquals("STEP_LIMIT: no proposal (calls = 3, invalid = 1)", sApp.run(provider, 3));
         assertEquals(before, sApp.bookingSnapshot());
     }
-
    
     @Test //D2-J
     void stepLimit(){
