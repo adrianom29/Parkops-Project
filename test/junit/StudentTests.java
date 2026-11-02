@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
+import java.time.Duration;
+
 public class StudentTests { 
 
 /*
@@ -267,22 +270,63 @@ public class StudentTests {
         assertEquals("PROVIDER_ERROR: Replay exhausted after 0 responses (calls = 1, invalid = 0)", sApp.run(provider, 6));
         assertEquals(before, sApp.bookingSnapshot());
     }
-/*      
+    
     @Test //D2-L
     void ticksWithUnchangedVersions(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+
+        assertEquals("Successfully scanned and emitted work item B1:v0:p1", sApp.tick(0));
+        assertEquals("NOT_SCANNED: Boundary not reached yet", sApp.tick(59));
+        assertEquals("SCANNED: work item B1:v0:p1 has already been emitted", sApp.tick(60));
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.proposalCount());
     }
     
     @Test //D2-M
     void tickBelowPreviousTime(){
-        fail();
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+
+        assertEquals("Successfully scanned and emitted work item B1:v0:p1", sApp.tick(60));
+        assertEquals("REJECTED: time cannot be less than previous tick", sApp.tick(59));
+        assertEquals("NOT_SCANNED: Boundary not reached yet", sApp.tick(119));
+        assertEquals("SCANNED: work item B1:v0:p1 has already been emitted", sApp.tick(120));
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.proposalCount());
     }
-    
+     
     @Test //D2-N
     void realModelRun(){
-        fail();
+        String host = System.getenv("OLLAMA_CHAT_URL");
+        String model = System.getenv("OLLAMA_MODEL");
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+
+        if (host == null || host.isBlank() || model == null || model.isBlank()) {
+            assertEquals(0, sApp.proposalCount());
+            assertEquals(before, sApp.bookingSnapshot());
+            return;
+        }
+
+        OllamaProvider provider = new OllamaProvider(URI.create(host), model, Duration.ofSeconds(30));
+        String result = sApp.run(provider, 6);
+
+        assertTrue(result.startsWith("AWAITING_APPROVAL")
+                || result.startsWith("NO_ACTION")
+                || result.startsWith("STEP_LIMIT")
+                || result.startsWith("PROVIDER_ERROR"), result);
+
+        if (result.startsWith("AWAITING_APPROVAL")) {
+            assertEquals(1, sApp.proposalCount());
+            assertTrue(result.contains("=B12") || result.contains("=C03"), result);
+        } 
+        else {
+            assertEquals(0, sApp.proposalCount());
+        }
+
+        assertEquals(before, sApp.bookingSnapshot());
     }
-   */ 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                             B3 test cases (A-J)
