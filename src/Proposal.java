@@ -1,9 +1,14 @@
+/**
+ * Domain object: a reassignment proposal and its lifecycle.
+ * PENDING -> APPROVED | REJECTED, APPROVED -> EXECUTED. No other transition exists,
+ * and identity and captured versions never change after creation.
+ */
 public class Proposal {
     private final String id;
     private final String bookingId;
     private final String spaceId;
-    private int bookingVersion;
-    private int policyVersion;
+    private final int bookingVersion;
+    private final int policyVersion;
     private ProposalStatus status;
 
     public Proposal(String id, String bookingId, String spaceId, int bookingVersion, int policyVersion){
@@ -42,10 +47,6 @@ public class Proposal {
     public int getBookingVersion(){
         return bookingVersion;
     }
-    
-    public void setBookingVersion(int newVersion){
-        this.bookingVersion = newVersion;
-    }
 
     public int getPolicyVersion(){
         return policyVersion;
@@ -55,13 +56,39 @@ public class Proposal {
         return status;
     }
 
-    public void setStatus(ProposalStatus status){
-        this.status = status;
+    /** Still able to lead to a commit (pending or approved but not yet executed). */
+    public boolean isActive(){
+        return status == ProposalStatus.PENDING || status == ProposalStatus.APPROVED;
+    }
+
+    public void approve(){
+        requirePending();
+        status = ProposalStatus.APPROVED;
+    }
+
+    public void reject(){
+        requirePending();
+        status = ProposalStatus.REJECTED;
+    }
+
+    public void markExecuted(){
+        if (status != ProposalStatus.APPROVED){
+            throw new IllegalStateException("Proposal must be APPROVED to be executed");
+        }
+        status = ProposalStatus.EXECUTED;
+    }
+
+    private void requirePending(){
+        if (status == ProposalStatus.APPROVED || status == ProposalStatus.REJECTED) {
+            throw new IllegalStateException("Proposal has already been evaluated, cannot be evaluated twice");
+        }
+        if (status != ProposalStatus.PENDING) {
+            throw new IllegalStateException("Proposal status must be PENDING in order to be evaluated");
+        }
     }
 
     public ProposalView toView(){
         return new ProposalView(id, bookingId, spaceId, bookingVersion, policyVersion, status.name());
-
     }
 
 }

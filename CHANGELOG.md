@@ -107,3 +107,13 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Created and filled in results/d2.txt with outputs of tests (all passed)
 - Added result of ./run.ps1 run live command into results/d2.txt
 - Wrote test plans for all D2 test cases A-N in TEST_PLAN.md
+
+### 2026 11 4
+- Added result of ./run.ps1 run scripted and ./run.ps1 run agent-scripted commands into results/d2.txt
+- Changes to Junit test cases
+- Added new result of ./run.ps1 run live command into results/d2.txt for updated junit tests
+- D2.4 refactor: split StudentApplication into four layers behind clear boundaries (public methods and outputs unchanged)
+    - Model protocol: Tool (enum of the four tools), ToolRequest (validated request), ToolProtocol (prompt text, reply parsing/validation, observation formatting)
+    - Coordination: AgentRunner (bounded loop + observation history), ReassignmentTools (read/list/propose only, no approve/execute), PeriodicScanner (ticks, work items, retry); StudentApplication is now a facade that owns the operator approve/reject/execute flow
+    - Domain rules: ReassignmentPolicy (eligibility, execution rechecks, closed-space detection); Proposal now owns its state transitions (approve/reject/markExecuted) and Booking.reassignTo() replaces setSpaceId/setVersion; removed Proposal.setStatus/setBookingVersion
+    - Data storage: ParkingInventory (booking + spaces), ProposalStore (proposals + ids), NotificationLog (one notification record per committed proposal instead of an int counter)

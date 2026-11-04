@@ -92,7 +92,7 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
     - Pending proposal P1 for B1 to B12
 - Input: Execute P1 while still pending
 - Expected Result: Rejection; booking and occupancy unchanged
-- Actual Result: Execute returns "status must be APPROVED" message, nothing is executed
+- Actual Result: Execute returns "status must be APPROVED" message; booking snapshot and B12 space snapshot unchanged, notification count 0, proposal count still 1
 - Source/Test Method: test/junit/StudentTests.executePendingProposal()
 
 ### D2.C:
@@ -102,7 +102,7 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
     - Pending proposal P1 for B1 to B12
 - Input: Approve P1, then execute P1
 - Expected Result: Proposal executed; one notification sent
-- Actual Result: Execute returns "Proposal P1 successfully executed", notification count is 1
+- Actual Result: Approve returns status APPROVED; execute returns "Proposal P1 successfully executed"; booking now B12/version 1; notification count is 1
 - Source/Test Method: test/junit/StudentTests.approveAndExecuteValidProposal()
 
 ### D2.D:
@@ -112,7 +112,7 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
     - Proposal P1 for B1 to B12 approved and executed
 - Input: Execute P1 a second time
 - Expected Result: No second move; no duplicate notification
-- Actual Result: Execute returns "Proposal P1 already executed", notification count remains 1
+- Actual Result: Execute returns "Proposal P1 already executed"; booking snapshot identical to after first commit (B12/version 1, not version 2); notification count remains 1
 - Source/Test Method: test/junit/StudentTests.executeCommittedProposalAgain()
 
 ### D2.E:
@@ -123,7 +123,7 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
     - Pending proposal P1 for B1 to B12
 - Input: Reject P1, then execute P1
 - Expected Result: Rejection; booking unchanged
-- Actual Result: Execute returns "status must be APPROVED" message, booking snapshot remains the same
+- Actual Result: Reject returns status REJECTED; execute returns "status must be APPROVED" message; booking snapshot unchanged; notification count 0; a later approve of P1 throws IllegalStateException and booking stays unchanged
 - Source/Test Method: test/junit/StudentTests.rejectAndExecutePendingProposal()
 
 ### D2.F:
@@ -166,7 +166,7 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
     - Booking B1 in space A17, version 0
 - Input: Replay response with unknown tool UNKNOWN_TOOL
 - Expected Result: Invalid response counted; booking unchanged
-- Actual Result: Run returns STEP_LIMIT with invalid = 1, booking snapshot remains the same
+- Actual Result: Run returns STEP_LIMIT with invalid = 1; booking snapshot unchanged; proposal count 0; notification count 0
 - Source/Test Method: test/junit/StudentTests.unknownTool()
 
 ### D2.J:
@@ -176,7 +176,7 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
     - Booking B1 in space A17, version 0
 - Input: 6 READ_BOOKING responses with a limit of 6 calls
 - Expected Result: Stops at step limit; no proposal; booking unchanged
-- Actual Result: Run returns "STEP_LIMIT: no proposal (calls = 6, invalid = 0)", booking snapshot remains the same
+- Actual Result: Run returns "STEP_LIMIT: no proposal (calls = 6, invalid = 0)"; provider called exactly 6 times; proposal count 0; booking snapshot unchanged
 - Source/Test Method: test/junit/StudentTests.stepLimit()
 
 ### D2.K:
@@ -186,7 +186,7 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
     - Booking B1 in space A17, version 0
 - Input: Empty replay provider
 - Expected Result: Controlled provider error; booking unchanged
-- Actual Result: Run returns PROVIDER_ERROR with calls = 1, booking snapshot remains the same
+- Actual Result: Run returns PROVIDER_ERROR with calls = 1; proposal count 0; booking snapshot unchanged
 - Source/Test Method: test/junit/StudentTests.providerError()
 
 ### D2.L:

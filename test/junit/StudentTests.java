@@ -144,8 +144,14 @@ public class StudentTests {
     @Test //D2-B
     void executePendingProposal(){
         StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        Map<String, Object> targetBefore = sApp.spaceSnapshot("B12");
         sApp.propose("B12");
         assertEquals(sApp.execute("P1"), "Proposal P1 unsuccessfully executed: status must be APPROVED");
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(targetBefore, sApp.spaceSnapshot("B12"));
+        assertEquals(0, sApp.notificationCount());
+        assertEquals(1, sApp.proposalCount());
     }
 
     @Test
@@ -159,19 +165,25 @@ public class StudentTests {
     void approveAndExecuteValidProposal(){
         StudentApplication sApp = new StudentApplication();
         sApp.propose("B12");
-        sApp.evaluate("P1", true);
+        assertEquals("APPROVED", sApp.evaluate("P1", true).status());
         assertEquals(sApp.execute("P1"), "Proposal P1 successfully executed");
         assertEquals(sApp.notificationCount(), 1);
+        assertEquals("B12", sApp.bookingSnapshot().get("spaceId"));
+        assertEquals(1, sApp.bookingSnapshot().get("version"));
     }
-    
+
     @Test //D2-D
     void executeCommittedProposalAgain(){
         StudentApplication sApp = new StudentApplication();
         sApp.propose("B12");
         sApp.evaluate("P1", true);
         assertEquals(sApp.execute("P1"), "Proposal P1 successfully executed");
+        Map<String, Object> afterCommit = sApp.bookingSnapshot();
         assertEquals(sApp.execute("P1"), "Proposal P1 already executed");
         assertEquals(sApp.notificationCount(), 1);
+        assertEquals(afterCommit, sApp.bookingSnapshot());
+        assertEquals("B12", sApp.bookingSnapshot().get("spaceId"));
+        assertEquals(1, sApp.bookingSnapshot().get("version"));
     }
     
     @Test //D2-E
@@ -179,8 +191,11 @@ public class StudentTests {
         StudentApplication sApp = new StudentApplication();
         Map<String, Object> before = sApp.bookingSnapshot();
         sApp.propose("B12");
-        sApp.evaluate("P1", false);
+        assertEquals("REJECTED", sApp.evaluate("P1", false).status());
         assertEquals(sApp.execute("P1"), "Proposal P1 unsuccessfully executed: status must be APPROVED");
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.notificationCount());
+        assertThrows(IllegalStateException.class, () -> sApp.evaluate("P1", true));
         assertEquals(before, sApp.bookingSnapshot());
     }
     
@@ -241,6 +256,8 @@ public class StudentTests {
 
         assertEquals("STEP_LIMIT: no proposal (calls = 3, invalid = 1)", sApp.run(provider, 3));
         assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.proposalCount());
+        assertEquals(0, sApp.notificationCount());
     }
    
     @Test //D2-J
@@ -258,6 +275,8 @@ public class StudentTests {
 
         assertEquals("STEP_LIMIT: no proposal (calls = 6, invalid = 0)", sApp.run(provider, 6));
         assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.proposalCount());
+        assertEquals(6, provider.calls());
     }
   
     @Test //D2-K
@@ -268,6 +287,7 @@ public class StudentTests {
 
         assertEquals("PROVIDER_ERROR: Replay exhausted after 0 responses (calls = 1, invalid = 0)", sApp.run(provider, 6));
         assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.proposalCount());
     }
     
     @Test //D2-L
@@ -326,12 +346,12 @@ public class StudentTests {
 
         assertEquals(before, sApp.bookingSnapshot());
     }
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                             B3 test cases (A-J)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-/* 
+
     @Test //D3-A
     void policy1FixureB1(){
         

@@ -30,10 +30,6 @@ public final class Booking {
         return spaceId;
     }
 
-    public void setSpaceId(String value){
-        this.spaceId = value;
-    }
-
     public int getDuration(){
         return duration;
     }
@@ -42,8 +38,14 @@ public final class Booking {
         return version;
     }
 
-    public void setVersion(int value){
-        this.version = value;
+    /**
+     * Moves this booking to another space. The only way the space changes, and it
+     * always bumps the version, so proposals made against the old version go stale.
+     */
+    public void reassignTo(String newSpaceId){
+        DomainRules.requireIdentifier(newSpaceId);
+        this.spaceId = newSpaceId;
+        this.version++;
     }
 
     public boolean accessibilityRequirement(){
