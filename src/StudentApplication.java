@@ -3,14 +3,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Application coordination facade: the single entry point used by Main, operators and tests.
- * It wires the layers together and owns the operator workflow (approve/reject/execute):
- *   model protocol  - ToolProtocol, Tool, ToolRequest (used by AgentRunner)
- *   coordination    - this class, AgentRunner, PeriodicScanner
- *   domain rules    - ReassignmentPolicy, Booking, Space, Proposal
- *   data storage    - ParkingInventory, ProposalStore, NotificationLog
- */
+
+// Application coordination facade: the single entry point used by Main, operators and tests.
+// It wires the layers together and owns the operator workflow (approve/reject/execute):
+//   model protocol  - ToolProtocol, Tool, ToolRequest (used by AgentRunner)
+//   coordination    - this class, AgentRunner, PeriodicScanner
+//   domain rules    - ReassignmentPolicy, Booking, Space, Proposal
+//   data storage    - ParkingInventory, ProposalStore, NotificationLog
+
 public final class StudentApplication {
 
     private static final int POLICY_VERSION = 1;
@@ -55,7 +55,7 @@ public final class StudentApplication {
 
     //proposal creation
 
-    /** Validates everything before creating anything; the booking is never moved here. */
+    //Validates everything before creating anything; the booking is never moved here.
     public ProposalView propose(String targetId) {
         DomainRules.requireIdentifier(targetId);
         Booking booking = inventory.booking();
@@ -75,7 +75,7 @@ public final class StudentApplication {
 
     //operator actions (D2.2)
 
-    /** Operator approves (true) or rejects (false) a pending proposal. Never executes. */
+    //Operator approves (true) or rejects (false) a pending proposal. Never executes.
     public ProposalView evaluate(String proposalId, boolean approve) {
         Proposal p = proposals.find(proposalId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid proposalId"));
@@ -87,7 +87,7 @@ public final class StudentApplication {
         return p.toView();
     }
 
-    /** Separate operator action: commits an approved proposal only if every recheck still holds. */
+    // Separate operator action: commits an approved proposal only if every recheck still holds.
     public String execute(String proposalId) {
         Optional<Proposal> found = proposals.find(proposalId);
         if (found.isEmpty()) {
@@ -143,7 +143,7 @@ public final class StudentApplication {
         return space;
     }
 
-    /** The read/list/propose operations handed to the model loop; no approve or execute. */
+    // The read/list/propose operations handed to the model loop; no approve or execute.
     private final class ModelTools implements ReassignmentTools {
 
         public String goalBookingId() {

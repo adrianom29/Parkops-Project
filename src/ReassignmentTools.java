@@ -19,6 +19,6 @@ interface ReassignmentTools {
 
     List<String> listAlternatives();
 
-    /** Creates one pending proposal, or throws IllegalArgumentException if the target is ineligible. */
+    // Creates one pending proposal, or throws IllegalArgumentException if the target is ineligible.
     ProposalView propose(String targetId);
 }

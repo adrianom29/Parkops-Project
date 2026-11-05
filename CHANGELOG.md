@@ -117,3 +117,15 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
     - Coordination: AgentRunner (bounded loop + observation history), ReassignmentTools (read/list/propose only, no approve/execute), PeriodicScanner (ticks, work items, retry); StudentApplication is now a facade that owns the operator approve/reject/execute flow
     - Domain rules: ReassignmentPolicy (eligibility, execution rechecks, closed-space detection); Proposal now owns its state transitions (approve/reject/markExecuted) and Booking.reassignTo() replaces setSpaceId/setVersion; removed Proposal.setStatus/setBookingVersion
     - Data storage: ParkingInventory (booking + spaces), ProposalStore (proposals + ids), NotificationLog (one notification record per committed proposal instead of an int counter)
+- Runned Junit tests again to confirm they all still pass after refactor 
+
+### 2026 11 5
+- Work on DESIGN.pdf:
+    - Component Explanation section chart which displays all layer names (Coordination, Model Protocol, Domain Rules, and Data Storage), classes, and responisbilities
+    - Dependency Explanation
+    - State Transition Table that demonstrates lifestyle of Proposal
+    - Two Design Desisions: 
+        1. Versions are captured at proposal time and rechecked during execution
+        2. Model is kept away from approval and execution
+    - Unsuccessful or Rejected model/tool Interaction
+    - Limitations

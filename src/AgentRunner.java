@@ -9,8 +9,6 @@ import java.util.List;
 
 final class AgentRunner {
 
-    static final int MAX_CALLS = 6;
-
     private final ReassignmentTools tools;
 
     AgentRunner(ReassignmentTools tools) {
@@ -21,7 +19,7 @@ final class AgentRunner {
         if (provider == null) {
             return "REJECTED: provider must not be null";
         }
-        if (limit < 1 || limit > MAX_CALLS) {
+        if (limit < 1 || limit > 6) {
             return "REJECTED: Limit must be between 1 and 6";
         }
 
