@@ -63,10 +63,7 @@ Booking: {"version":0,"id":"B1","requiresAccessible":true,"spaceId":"A17","durat
 
 ./run.ps1 run agent-scripted
 JDK 21
-Nov 4 2026
+Nov 5 2026
 
 REPLAY D2 workflow; not a live model run.
 AWAITING_APPROVAL: ProposalView[proposalId=P1, bookingId=B1, targetId=B12, bookingVersion=0, policyVersion=1, status=PENDING] calls = 3 invalid=0
-
-Live model status (Nov 4 2026): OLLAMA_CHAT_URL and OLLAMA_MODEL still not supplied by the course;
-LIVE_RUN_PENDING_COURSE_ACCESS (see ./run.ps1 run live above). No paid access was purchased.

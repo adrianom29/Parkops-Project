@@ -129,3 +129,4 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
         2. Model is kept away from approval and execution
     - Unsuccessful or Rejected model/tool Interaction
     - Limitations
+- Made Gemini project and created an API key. Used Gemini API through implemented coordinator

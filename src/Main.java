@@ -1,6 +1,4 @@
 
-import java.net.URI;
-import java.time.Duration;
 import java.util.List;
 
 public final class Main {
@@ -39,14 +37,8 @@ public final class Main {
                 System.out.println(app.run(Fixture.replay(), 6));
             } 
             else if (mode.equals("live")) {
-                String host = System.getenv("OLLAMA_CHAT_URL"), model = System.getenv("OLLAMA_MODEL");
-                if (host == null || model == null || host.isBlank() || model.isBlank()) {
-                    System.out.println("LIVE_RUN_PENDING_COURSE_ACCESS: configure the course-provided OLLAMA_CHAT_URL and OLLAMA_MODEL.");
-                    System.exit(2);
-                }
-                System.out.println("LIVE provider selected; outcome must be recorded from actual execution.");
-                System.out.println(app.run(new OllamaProvider(URI.create(host), model, Duration.ofSeconds(30)), 6));
-            } 
+                System.out.println("LIVE Gemini: record model replies and tool observations.");
+                System.out.println(app.run(GeminiProvider.fromEnvironment(), 6));            } 
             else {
                 System.err.println("Modes: fixture | scripted (D1) | agent-scripted (D2) | live (D2)");
                 System.exit(2);
