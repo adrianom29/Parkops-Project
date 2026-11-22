@@ -15,13 +15,18 @@ final class ParkingInventory {
     }
 
     static ParkingInventory fromFixture() {
+        return fromFixture((Boolean) Fixture.booking().get("requiresAccessible"));
+    }
+
+    //Fixture with the booking's accessibility requirement overridden (used to show unaffected bookings).
+    static ParkingInventory fromFixture(boolean requiresAccessible) {
         Map<String, Object> raw = Fixture.booking();
         Booking booking = new Booking(
                 (String) raw.get("id"),
                 (String) raw.get("spaceId"),
                 (Integer) raw.get("durationHours"),
                 (Integer) raw.get("version"),
-                (Boolean) raw.get("requiresAccessible"));
+                requiresAccessible);
 
         Map<String, Space> spaces = new LinkedHashMap<>();   // keeps fixture order for listings
         for (Map<String, Object> s : Fixture.spaces()) {

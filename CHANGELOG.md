@@ -130,3 +130,19 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
     - Unsuccessful or Rejected model/tool Interaction
     - Limitations
 - Made Gemini project and created an API key. Used Gemini API through implemented coordinator
+
+## D3
+
+### 2026 11 22
+- D3.1 Policy rule in ReassignmentPolicy.java. Rejects any unaccessible target
+- Implemented StudentApplication.activatePolicyVersion2() which updates policy version from 1 to 2
+- Added policy version getter in StudentApplication.java
+- Wrote junit test case D3-A
+- Wrote junit test case D3-B
+- Wrote junit test case D3-C
+- Wrote junit test case D3-D
+- Wrote junit test case D3-E
+- Wrote junit test case D3-F
+- Wrote junit test case D3-G
+- Wrote junit test case D3-H
+- Wrote junit test case D3-I

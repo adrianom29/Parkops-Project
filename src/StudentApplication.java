@@ -13,15 +13,39 @@ import java.util.Optional;
 
 public final class StudentApplication {
 
-    private static final int POLICY_VERSION = 1;
+    private static final int BASELINE_POLICY_VERSION = 1;
 
-    private final ParkingInventory inventory = ParkingInventory.fromFixture();
-    private final ReassignmentPolicy policy = new ReassignmentPolicy(POLICY_VERSION);
+    private final ParkingInventory inventory;
+    private ReassignmentPolicy policy = new ReassignmentPolicy(BASELINE_POLICY_VERSION);
     private final ProposalStore proposals = new ProposalStore();
     private final NotificationLog notifications = new NotificationLog();
     private final PeriodicScanner scanner = new PeriodicScanner();
 
+    //Supplied B1 fixture (requires an accessible space), starting at baseline policy version 1.
     public StudentApplication() {
+        this.inventory = ParkingInventory.fromFixture();
+    }
+
+    //Same fixture but with the booking's accessibility requirement overridden.
+    public StudentApplication(boolean bookingRequiresAccessible) {
+        this.inventory = ParkingInventory.fromFixture(bookingRequiresAccessible);
+    }
+
+    //Policy evolution (D3): activates the accessible-space rule as policy version 2.
+    //Proposals made under version 1 are not touched here; they go stale because
+    //execution rechecks the policy version. Idempotent.
+    public void activatePolicyVersion2() {
+        if (policy.version() < ReassignmentPolicy.ACCESSIBILITY_RULE_VERSION) {
+            policy = new ReassignmentPolicy(ReassignmentPolicy.ACCESSIBILITY_RULE_VERSION);
+        }
+    }
+
+    public int policyVersion() {
+        return policy.version();
+    }
+
+    public List<String> eligibleTargets() {
+        return new ModelTools().listAlternatives();
     }
 
     //queries

@@ -351,55 +351,131 @@ public class StudentTests {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                             B3 test cases (A-J)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 
     @Test //D3-A
-    void policy1FixureB1(){
-        
+    void policy1FixtureB1(){
+        StudentApplication sApp = new StudentApplication();
+        assertEquals(1, sApp.policyVersion());
+        assertEquals(List.of("B12", "C03"), sApp.eligibleTargets());
+        assertEquals(1, sApp.propose("B12").policyVersion());
+        assertEquals(1, sApp.propose("C03").policyVersion());
     }
 
     @Test //D3-B
     void activatePolicy2(){
-        
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+        sApp.activatePolicyVersion2();
+        assertEquals(2, sApp.policyVersion());
+        assertEquals(List.of("C03"), sApp.eligibleTargets());
+        assertEquals(2, sApp.propose("C03").policyVersion());
+        assertEquals(before, sApp.bookingSnapshot());
+        sApp.activatePolicyVersion2(); //idempotent
+        assertEquals(2, sApp.policyVersion());
     }
 
     @Test //D3-C
     void version1ApprovedProposalThenPolicy2(){
-        
+        StudentApplication sApp = new StudentApplication();
+        sApp.propose("C03"); //would still be eligible under version 2
+        sApp.evaluate("P1", true);
+        Map<String, Object> before = sApp.bookingSnapshot();
+
+        sApp.activatePolicyVersion2();
+
+        assertEquals("Proposal P1 unsuccessfully executed: policy version must be 2", sApp.execute("P1"));
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals("A17", sApp.bookingSnapshot().get("spaceId"));
+        assertEquals(0, sApp.notificationCount());
     }
-    
+
     @Test //D3-D
     void version2ProposalToB12(){
+        StudentApplication sApp = new StudentApplication();
+        sApp.activatePolicyVersion2();
+        Map<String, Object> before = sApp.bookingSnapshot();
 
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> sApp.propose("B12"));
+        assertEquals("Target space (B12) is not accessible", ex.getMessage());
+        assertEquals(0, sApp.proposalCount());
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.notificationCount());
     }
-    
+
     @Test //D3-E
-    void version2ProposalToC09(){
-        
+    void version2ProposalToC03(){
+        StudentApplication sApp = new StudentApplication();
+        sApp.activatePolicyVersion2();
+        sApp.propose("C03");
+        sApp.evaluate("P1", true);
+
+        assertEquals("Proposal P1 successfully executed", sApp.execute("P1"));
+        assertEquals("C03", sApp.bookingSnapshot().get("spaceId"));
+        assertEquals(1, sApp.bookingSnapshot().get("version"));
+        assertEquals(1, sApp.notificationCount());
     }
-    
+
     @Test //D3-F
     void repeatD3E(){
-        
+        StudentApplication sApp = new StudentApplication();
+        sApp.activatePolicyVersion2();
+        sApp.propose("C03");
+        sApp.evaluate("P1", true);
+        sApp.execute("P1");
+        Map<String, Object> afterCommit = sApp.bookingSnapshot();
+
+        assertEquals("Proposal P1 already executed", sApp.execute("P1"));
+        assertEquals(afterCommit, sApp.bookingSnapshot());
+        assertEquals(1, sApp.notificationCount());
     }
-    
+
     @Test //D3-G
     void nonAccessibilityRequiringBooking(){
-        
+        StudentApplication sApp = new StudentApplication(false);
+        sApp.activatePolicyVersion2();
+        assertEquals(false, sApp.bookingSnapshot().get("requiresAccessible"));
+        assertEquals(List.of("B12", "C03"), sApp.eligibleTargets());
+        assertEquals("B12", sApp.propose("B12").targetId());
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("D09")); //occupied: general rule kept
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("A17")); //current space: general rule kept
     }
-    
+
     @Test //D3-H
     void ignorePolicyProposeB12(){
-        
+        StudentApplication sApp = new StudentApplication();
+        sApp.activatePolicyVersion2();
+        Map<String, Object> before = sApp.bookingSnapshot();
+
+        //Model investigates properly, then ignores the candidate list.
+        String result = sApp.run(Fixture.replay(), 6); //replay proposes B12 after listing [C03]
+        assertEquals("PROVIDER_ERROR: Replay exhausted after 3 responses (calls = 4, invalid = 1)", result); //B12 rejected as not a listed candidate
+        assertEquals(0, sApp.proposalCount());
+
+        //Java still enforces the rule when the model layer is bypassed.
+        assertThrows(IllegalArgumentException.class, () -> sApp.propose("B12"));
+        assertEquals(0, sApp.proposalCount());
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.notificationCount());
     }
-    
+
     @Test //D3-I
     void periodicTickAfterPolicyVersionChange(){
-        
+        StudentApplication sApp = new StudentApplication();
+        Map<String, Object> before = sApp.bookingSnapshot();
+
+        assertEquals("Successfully scanned and emitted work item B1:v0:p1", sApp.tick(0));
+        sApp.activatePolicyVersion2();
+        assertEquals("NOT_SCANNED: Boundary not reached yet", sApp.tick(30));
+        assertEquals("Successfully scanned and emitted work item B1:v0:p2", sApp.tick(60));
+        assertEquals("SCANNED: work item B1:v0:p2 has already been emitted", sApp.tick(120));
+        assertEquals(before, sApp.bookingSnapshot());
+        assertEquals(0, sApp.proposalCount());
     }
-    
+/* 
     @Test //D3-J
     void contractedAttemptBudgetReachesLimit(){
         
-    }
+    } 
 */
 }

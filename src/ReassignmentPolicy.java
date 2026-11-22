@@ -6,6 +6,9 @@ import java.util.Optional;
 
 final class ReassignmentPolicy {
 
+    //First policy version that requires accessible targets for bookings that need one (D3).
+    static final int ACCESSIBILITY_RULE_VERSION = 2;
+
     private final int version;
 
     ReassignmentPolicy(int version) {
@@ -29,6 +32,11 @@ final class ReassignmentPolicy {
         }
         if (!target.isAvailable()) {
             return Optional.of("Target space (" + target.getId() + ") is not available");
+        }
+        if (version >= ACCESSIBILITY_RULE_VERSION
+                && booking.accessibilityRequirement()
+                && !target.isAccessible()) {
+            return Optional.of("Target space (" + target.getId() + ") is not accessible");
         }
         return Optional.empty();
     }
