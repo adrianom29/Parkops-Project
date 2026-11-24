@@ -1,0 +1,73 @@
+./run.ps1 run d3-demo
+JDK 25.0.4.1 (compiled with --release 21)
+Nov 23 2026
+
+D3 DEMO: scripted calls to the application; not a live model run.
+=== 1. Baseline (policy 1), B1 requires accessible ===
+policy=1 eligible=[B12, C03]
+=== 2. Policy 2 on a clean fixture ===
+policy=2 eligible=[C03]
+REJECTED B12: Target space (B12) is not accessible
+Booking: {"version":0,"id":"B1","requiresAccessible":true,"spaceId":"A17","durationHours":3} proposals=0 notifications=0
+=== 3. Version-1 proposal approved, then policy 2 activated ===
+ProposalView[proposalId=P1, bookingId=B1, targetId=C03, bookingVersion=0, policyVersion=1, status=PENDING]
+ProposalView[proposalId=P1, bookingId=B1, targetId=C03, bookingVersion=0, policyVersion=1, status=APPROVED]
+Proposal P1 unsuccessfully executed: policy version must be 2
+Booking: {"version":0,"id":"B1","requiresAccessible":true,"spaceId":"A17","durationHours":3} proposals=1 notifications=0
+=== 4. Fresh version-2 proposal to C03, approve, execute, repeat ===
+ProposalView[proposalId=P2, bookingId=B1, targetId=C03, bookingVersion=0, policyVersion=2, status=PENDING]
+ProposalView[proposalId=P2, bookingId=B1, targetId=C03, bookingVersion=0, policyVersion=2, status=APPROVED]
+Proposal P2 successfully executed
+Proposal P2 already executed
+Booking: {"version":1,"id":"B1","requiresAccessible":true,"spaceId":"C03","durationHours":3} proposals=2 notifications=1
+=== 5. Booking that does not require accessibility, policy 2 ===
+eligible=[B12, C03]
+=== 6. Periodic ticks across the policy change ===
+tick 0:   Successfully scanned and emitted work item B1:v0:p1
+tick 30:  NOT_SCANNED: Boundary not reached yet
+tick 60:  Successfully scanned and emitted work item B1:v0:p2
+tick 120: SCANNED: work item B1:v0:p2 has already been emitted
+
+./run.ps1 check
+JDK 25.0.4.1 (compiled with --release 21)
+Nov 23 2026
+
+PASS duration endpoints
+PASS invalid duration 0
+PASS invalid duration 25
+PASS invalid duration -1
+PASS invalid identifier null
+PASS invalid identifier 
+PASS invalid identifier b1
+PASS invalid identifier 1B
+PASS invalid identifier ABCDEFGHIJKLMNOPQ
+PASS valid identifiers
+PASS D1-C pending B12, no booking change
+PASS D1-D occupied D09 rejected unchanged
+PASS D1-E unknown target rejected unchanged
+PASS D1-F protected snapshot
+CHECKS 14; FAILED 0
+
+./run.ps1 test
+JDK 25.0.4.1 (compiled with --release 21)
+Nov 23 2026
+
+
+Thanks for using JUnit! Support its development at https://junit.org/sponsoring
+
+INFRASTRUCTURE_CHECKS_PASS 31; localhost fake HTTP only; no live model or project solution verified.
+
+Test run finished after 396 ms
+[         7 containers found      ]
+[         0 containers skipped    ]
+[         7 containers started    ]
+[         0 containers aborted    ]
+[         7 containers successful ]
+[         0 containers failed     ]
+[        47 tests found           ]
+[         0 tests skipped         ]
+[        47 tests started         ]
+[         0 tests aborted         ]
+[        47 tests successful      ]
+[         0 tests failed          ]
+

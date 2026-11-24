@@ -226,39 +226,84 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
 
 ### D3.A:
 
-- 
+- Preconditions: 
+    - Policy version 1 (baseline); B1 requires accessible
+- Input: List alternatives and propose B12 and C03
+- Expected Result: B12 and C03 both eligible
+- Actual Result: eligibleTargets() returns [B12, C03]; proposals for B12 and C03 are created with policyVersion 1
+- Source/Test Method: test/junit/StudentTests.policy1FixtureB1()
 
 ### D3.B:
 
-- 
+- Preconditions: 
+    - Fresh StudentApplication; activatePolicyVersion2() called
+- Input: List alternatives, then propose C03; activate a second time
+- Expected Result: Only C03 eligible for B1; booking unchanged
+- Actual Result: eligibleTargets() returns [C03]; C03 proposal has policyVersion 2; booking still A17 version 0; second activation leaves version at 2
+- Source/Test Method: test/junit/StudentTests.activatePolicy2()
 
 ### D3.C:
 
-- 
+- Preconditions: 
+    - Version-1 proposal P1 (C03) created and approved; then policy 2 activated
+- Input: Execute P1
+- Expected Result: STALE; no domain mutation
+- Actual Result: Returns 'unsuccessfully executed: policy version must be 2'; booking snapshot unchanged (A17, version 0); notification count 0, even though C03 is still eligible under version 2
+- Source/Test Method: test/junit/StudentTests.version1ApprovedProposalThenPolicy2()
 
 ### D3.D:
 
-- 
+- Preconditions: 
+    - Policy 2 active; fresh fixture
+- Input: Propose B12
+- Expected Result: Rejected; no commit
+- Actual Result: IllegalArgumentException 'Target space (B12) is not accessible'; proposal count 0; booking unchanged; notification count 0
+- Source/Test Method: test/junit/StudentTests.version2ProposalToB12()
 
 ### D3.E:
 
-- 
+- Preconditions: 
+    - Policy 2 active; fresh fixture
+- Input: Propose C03, approve P1, execute P1
+- Expected Result: One commit to C03
+- Actual Result: 'successfully executed'; booking in C03, version 1; notification count 1
+- Source/Test Method: test/junit/StudentTests.version2ProposalToC03()
 
 ### D3.F:
 
-- 
+- Preconditions: 
+    - Proposal P1 to C03 already executed under policy 2
+- Input: Execute P1 again
+- Expected Result: No second commit or notification
+- Actual Result: Returns 'already executed'; booking snapshot identical to after first commit; notification count stays 1
+- Source/Test Method: test/junit/StudentTests.repeatD3E()
 
 ### D3.G:
 
-- 
+- Preconditions: 
+    - Booking constructed with requiresAccessible=false; policy 2 active
+- Input: List alternatives; propose B12, D09, A17
+- Expected Result: General available alternatives remain eligible; general checks kept
+- Actual Result: eligibleTargets() returns [B12, C03]; B12 proposal created; D09 (occupied) and A17 (current space) still rejected
+- Source/Test Method: test/junit/StudentTests.nonAccessibilityRequiringBooking()
 
 ### D3.H:
 
-- 
+- Preconditions: 
+    - Policy 2 active; replay model lists alternatives then proposes B12
+- Input: Run the agent loop; also call propose(B12) directly
+- Expected Result: Application rejects despite model output
+- Actual Result: Runner rejects B12 as not a listed candidate (run ends PROVIDER_ERROR: replay exhausted after the rejection); direct propose(B12) throws; proposal count 0; booking and notifications unchanged. The model-layer rejection comes first, the Java rule is shown by the direct call
+- Source/Test Method: test/junit/StudentTests.ignorePolicyProposeB12()
 
 ### D3.I:
 
-- 
+- Preconditions: 
+    - Tick at 0 under policy 1, then policy 2 activated
+- Input: Ticks at 30, 60 and 120
+- Expected Result: New work can be emitted once for the new version pair
+- Actual Result: B1:v0:p1 emitted at 0; 30 not scanned; B1:v0:p2 emitted at 60; 120 reports already emitted; booking unchanged; proposal count 0
+- Source/Test Method: test/junit/StudentTests.periodicTickAfterPolicyVersionChange()
 
 ### D3.J:
 

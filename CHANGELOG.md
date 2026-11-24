@@ -146,3 +146,10 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Wrote junit test case D3-G
 - Wrote junit test case D3-H
 - Wrote junit test case D3-I
+
+
+### 2026 11 23
+- D3.1 Added Main d3-demo mode (baseline vs policy 2, stale v1 proposal, fresh v2 proposal, repeat execution, non-accessible booking, periodic ticks across the policy change)
+- Added StudentApplication(boolean) fixture override, eligibleTargets() and ParkingInventory.fromFixture(boolean) to support D3-G and the demo
+- Captured run d3-demo, check and test output in results/d3.txt
+- Filled in TEST_PLAN.md entries D3.A-I 
