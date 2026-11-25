@@ -162,3 +162,12 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
     - After refactor
     - Behaviour
     - Test commands and results
+
+### 2026 11 25
+- D3.3 static analysis
+- Created write-up in results/d3.txt
+    - Commands runned
+    - Results
+    - Classification
+    - Manual dependency/encapsulation review
+    - Limitation

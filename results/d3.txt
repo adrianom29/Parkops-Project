@@ -105,3 +105,62 @@ TEST COMMANDS AND RESULTS
   after refactoring:  47 tests found, 47 successful, 0 failed
 ./run.ps1 check
   after refactoring:  CHECKS 14; FAILED 0
+
+==============================================================================
+D3.3 - Static analysis
+Nov 25 2026, JDK 21.0.12.1 (compiled with --release 21)
+==============================================================================
+
+COMMANDS (PowerShell, COURSE_JAVA_HOME set to the JDK 21 folder)
+$javac = "$env:COURSE_JAVA_HOME\bin\javac"
+./run.ps1 lint        (javac --release 21 -encoding UTF-8 -Xlint:all over src/)
+& $javac --release 21 -encoding UTF-8 -Xlint:all -cp build -d build
+    (Get-ChildItem test/plain/*.java).FullName
+& $javac --release 21 -encoding UTF-8 -Xlint:all
+    -cp "build;lib/junit-platform-console-standalone-6.0.3.jar" -d build
+    (Get-ChildItem test/junit/*.java).FullName
+
+RESULTS
+src/         COMPILE_OK, 0 warnings
+test/plain/  exit 0, 0 warnings
+test/junit/  exit 0, 0 warnings
+
+CLASSIFICATION
+No warnings to classify, fix or justify. No @SuppressWarnings was found in the
+sources reviewed. As a control, a temporary file using a raw ArrayList produced
+2 [rawtypes] and 1 [unchecked] warnings, so the lint flag reports problems.
+
+MANUAL DEPENDENCY/ENCAPSULATION REVIEW
+Finding: protection of domain state is a convention, not a compiler guarantee.
+
+- Intended rule: a booking moves only through StudentApplication.execute, after
+  the status check and ReassignmentPolicy.executionBlocker.
+- All classes are in the default package, so "package-private" hides nothing
+  between layers.
+- ParkingInventory.booking(), space() and spaces() return the live objects.
+  unmodifiableCollection protects the collection, not the Space objects in it.
+- Booking.reassignTo() is public and checks only the identifier format, not
+  eligibility or approval.
+- ReassignmentPolicy is documented as never changing domain objects, and
+  PeriodicScanner only reads them, but both receive mutable references.
+
+Evidence: a temporary class outside the project compiled against build/ with
+-Xlint:all with no warnings, then ran:
+    inv.booking().reassignTo("D09");          // D09 is occupied
+    inv.spaces().iterator().next().open();    // A17 was closed
+Output: B1 now in D09 v1, A17 open=true
+(The probe used its own ParkingInventory.fromFixture() instance.)
+
+Current status: a search of src/ shows reassignTo() and markExecuted() are
+called only from StudentApplication.execute, and approve(), reject(), open() and
+close() only from StudentApplication. The public methods of StudentApplication
+return copies, records or values, never Booking, Space or Proposal. AgentRunner
+receives only ReassignmentTools, which has no approve or execute.
+
+Decision: accepted as a limitation. Enforcing it needs named packages or
+read-only interfaces for the domain objects. Packages would mean moving the
+files and adding imports to the supplied tests, which is out of proportion here.
+
+LIMITATION
+A zero-warning build says nothing about agent behaviour. Behaviour is checked
+separately by the tests and demo recorded above.
