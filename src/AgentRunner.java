@@ -23,84 +23,118 @@ final class AgentRunner {
             return "REJECTED: Limit must be between 1 and 6";
         }
 
-        List<ChatMessage> history = new ArrayList<>(
+        Transcript transcript = new Transcript(
                 ToolProtocol.openingMessages(tools.goalBookingId(), tools.currentSpaceId()));
         Investigation investigation = new Investigation();
-        int invalid = 0;
 
         for (int call = 1; call <= limit; call++) {
             String reply;
             try {
-                reply = provider.next(List.copyOf(history));
+                reply = provider.next(transcript.history());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return "PROVIDER_ERROR: interrupted (calls = " + call + ", invalid = " + invalid + ")";
+                return "PROVIDER_ERROR: interrupted (calls = " + call + ", invalid = " + transcript.invalid() + ")";
             } catch (Exception e) {
-                return "PROVIDER_ERROR: " + e.getMessage() + " (calls = " + call + ", invalid = " + invalid + ")";
+                return "PROVIDER_ERROR: " + e.getMessage()
+                        + " (calls = " + call + ", invalid = " + transcript.invalid() + ")";
             }
 
             if (reply == null) {
-                invalid++;
-                history.add(ToolProtocol.rejected("empty reply"));
+                transcript.reject("empty reply");
                 continue;
             }
-            history.add(ToolProtocol.assistant(reply));
+            transcript.add(ToolProtocol.assistant(reply));
 
             ToolRequest request;
             try {
                 request = ToolProtocol.parse(reply, tools.goalBookingId());
             } catch (IllegalArgumentException e) {
-                invalid++;
-                history.add(ToolProtocol.rejected(e.getMessage()));
+                transcript.reject(e.getMessage());
                 continue;
             }
 
             switch (request.tool()) {
                 case FINISH -> {
-                    return "NO_ACTION: calls = " + call + ", invalid = " + invalid;
+                    return "NO_ACTION: calls = " + call + ", invalid = " + transcript.invalid();
                 }
                 case READ_BOOKING -> {
                     investigation.read(tools.bookingVersion(), tools.policyVersion());
-                    history.add(ToolProtocol.observation(
-                            ToolProtocol.bookingObservation(tools.readBooking(), tools.policyVersion())));
+                    transcript.observe(
+                            ToolProtocol.bookingObservation(tools.readBooking(), tools.policyVersion()));
                 }
                 case LIST_ALTERNATIVES -> {
                     if (!investigation.hasRead()) {
-                        invalid++;
-                        history.add(ToolProtocol.rejected("READ_BOOKING must be before LIST_ALTERNATIVES"));
-                    } else if (investigation.isStale(tools.bookingVersion(), tools.policyVersion())) {
-                        investigation.reset();
-                        history.add(ToolProtocol.observation(ToolProtocol.STALE_OBSERVATION));
-                    } else {
+                        transcript.reject("READ_BOOKING must be before LIST_ALTERNATIVES");
+                    } else if (!restartIfStale(investigation, transcript)) {
                         investigation.listed(tools.listAlternatives());
-                        history.add(ToolProtocol.observation(
-                                ToolProtocol.candidatesObservation(investigation.candidates())));
+                        transcript.observe(ToolProtocol.candidatesObservation(investigation.candidates()));
                     }
                 }
                 case PROPOSE_REASSIGNMENT -> {
                     if (!investigation.hasListed()) {
-                        invalid++;
-                        history.add(ToolProtocol.rejected(
-                                "READ_BOOKING then LIST_ALTERNATIVES must be before PROPOSE_REASSIGNMENT"));
-                    } else if (investigation.isStale(tools.bookingVersion(), tools.policyVersion())) {
-                        investigation.reset();
-                        history.add(ToolProtocol.observation(ToolProtocol.STALE_OBSERVATION));
-                    } else if (!investigation.candidates().contains(request.targetId())) {
-                        invalid++;
-                        history.add(ToolProtocol.rejected("targetId was not a listed candidate"));
-                    } else {
-                        try {
-                            ProposalView p = tools.propose(request.targetId());
-                            return "AWAITING_APPROVAL: " + p + " calls = " + call + " invalid=" + invalid;
-                        } catch (IllegalArgumentException ex) {
-                            invalid++;
-                            history.add(ToolProtocol.rejected(ex.getMessage()));
+                        transcript.reject(
+                                "READ_BOOKING then LIST_ALTERNATIVES must be before PROPOSE_REASSIGNMENT");
+                    } else if (!restartIfStale(investigation, transcript)) {
+                        if (!investigation.candidates().contains(request.targetId())) {
+                            transcript.reject("targetId was not a listed candidate");
+                        } else {
+                            try {
+                                ProposalView p = tools.propose(request.targetId());
+                                return "AWAITING_APPROVAL: " + p + " calls = " + call
+                                        + " invalid=" + transcript.invalid();
+                            } catch (IllegalArgumentException ex) {
+                                transcript.reject(ex.getMessage());
+                            }
                         }
                     }
                 }
             }
         }
-        return "STEP_LIMIT: no proposal (calls = " + limit + ", invalid = " + invalid + ")";
+        return "STEP_LIMIT: no proposal (calls = " + limit + ", invalid = " + transcript.invalid() + ")";
+    }
+
+    //If the versions moved since READ_BOOKING, discards the investigation and tells the model to start over.
+    //Not counted as invalid: the model did nothing wrong.
+    private boolean restartIfStale(Investigation investigation, Transcript transcript) {
+        if (!investigation.isStale(tools.bookingVersion(), tools.policyVersion())) {
+            return false;
+        }
+        investigation.reset();
+        transcript.observe(ToolProtocol.STALE_OBSERVATION);
+        return true;
+    }
+
+    //The messages of one conversation and how many replies were rejected.
+    //reject() counts and reports a rejection in one step, and is the only thing that changes the count.
+    private static final class Transcript {
+        private final List<ChatMessage> messages;
+        private int invalid;
+
+        Transcript(List<ChatMessage> opening) {
+            this.messages = new ArrayList<>(opening);
+        }
+
+        void add(ChatMessage message) {
+            messages.add(message);
+        }
+
+        void observe(String content) {
+            add(ToolProtocol.observation(content));
+        }
+
+        void reject(String reason) {
+            invalid++;
+            add(ToolProtocol.rejected(reason));
+        }
+
+        //Read-only copy, so a provider cannot alter the conversation.
+        List<ChatMessage> history() {
+            return List.copyOf(messages);
+        }
+
+        int invalid() {
+            return invalid;
+        }
     }
 
     //What the model has established so far in this conversation, and against which versions. 

@@ -153,3 +153,12 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Added StudentApplication(boolean) fixture override, eligibleTargets() and ParkingInventory.fromFixture(boolean) to support D3-G and the demo
 - Captured run d3-demo, check and test output in results/d3.txt
 - Filled in TEST_PLAN.md entries D3.A-I 
+
+### 2026 11 24
+- D3.2 refactoring of AgentRunner.java
+- Created write-up in results/d3.txt
+    - Problem identification
+    - Before refactor
+    - After refactor
+    - Behaviour
+    - Test commands and results
