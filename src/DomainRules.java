@@ -12,7 +12,6 @@ public final class DomainRules {
     }
 
     public static void requireIdentifier(String id) {
-        // TODO D1: non-null [A-Z][A-Z0-9_-]{0,15}.
         if (id == null || 
             id.isBlank() ||
             id.length() == 0 || 

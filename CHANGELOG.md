@@ -147,7 +147,6 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 - Wrote junit test case D3-H
 - Wrote junit test case D3-I
 
-
 ### 2026 11 23
 - D3.1 Added Main d3-demo mode (baseline vs policy 2, stale v1 proposal, fresh v2 proposal, repeat execution, non-accessible booking, periodic ticks across the policy change)
 - Added StudentApplication(boolean) fixture override, eligibleTargets() and ParkingInventory.fromFixture(boolean) to support D3-G and the demo
@@ -171,3 +170,10 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
     - Classification
     - Manual dependency/encapsulation review
     - Limitation
+
+### 2026 11 26
+- D3.4 contracts
+    - Added AttemptBudget.java with JML contracts and class invariant; AgentRunner now counts model calls with it (behaviour unchanged)
+    - Added JML contract, loop invariant and loop variant to DomainRules.requireIdentifier
+    - Wrote junit test case D3-J and filled in its TEST_PLAN.md entry
+    - Added manual proof explanation and tool status to results/d3.txt

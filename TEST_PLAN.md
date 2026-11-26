@@ -307,4 +307,9 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
 
 ### D3.J:
 
-- 
+- Preconditions: 
+    - New AttemptBudget(3)
+- Input: Consume three times, then consume a fourth time
+- Expected Result: Remaining reaches 0 and is never negative; the next consume (prohibited pre-state remaining == 0) fails and changes nothing
+- Actual Result: remaining() is 2, 1, 0; fourth consume throws IllegalStateException 'Attempt budget exhausted'; remaining stays 0 and used stays 3
+- Source/Test Method: test/junit/StudentTests.contractedAttemptBudgetReachesLimit()

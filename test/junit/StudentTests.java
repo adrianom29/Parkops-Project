@@ -472,10 +472,21 @@ public class StudentTests {
         assertEquals(before, sApp.bookingSnapshot());
         assertEquals(0, sApp.proposalCount());
     }
-/* 
+    
     @Test //D3-J
     void contractedAttemptBudgetReachesLimit(){
-        
-    } 
-*/
+        AttemptBudget budget = new AttemptBudget(3);
+        for (int expected = 2; expected >= 0; expected--) {
+            budget.consume();
+            assertEquals(expected, budget.remaining());
+        }
+        assertEquals(3, budget.used());
+
+        //Prohibited pre-state remaining == 0: fails and changes nothing.
+        IllegalStateException ex = assertThrows(IllegalStateException.class, budget::consume);
+        assertEquals("Attempt budget exhausted", ex.getMessage());
+        assertEquals(0, budget.remaining());
+        assertEquals(3, budget.used());
+    }
+
 }

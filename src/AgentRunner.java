@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 
-
 //Application coordination for one bounded model conversation: calls the provider,
 //validates each reply through ToolProtocol, dispatches it to ReassignmentTools and
 //appends the observation to the history so the next call is informed by it.
@@ -19,7 +18,7 @@ final class AgentRunner {
         if (provider == null) {
             return "REJECTED: provider must not be null";
         }
-        if (limit < 1 || limit > 6) {
+        if (limit < 1 || limit > AttemptBudget.MAX_LIMIT) {
             return "REJECTED: Limit must be between 1 and 6";
         }
 
@@ -27,7 +26,11 @@ final class AgentRunner {
                 ToolProtocol.openingMessages(tools.goalBookingId(), tools.currentSpaceId()));
         Investigation investigation = new Investigation();
 
-        for (int call = 1; call <= limit; call++) {
+        AttemptBudget budget = new AttemptBudget(limit);
+
+        while (budget.remaining() > 0) {
+            budget.consume();       //counted before the call, so failed and rejected replies use an attempt too
+            int call = budget.used();
             String reply;
             try {
                 reply = provider.next(transcript.history());
