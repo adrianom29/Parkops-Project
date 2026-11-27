@@ -1,10 +1,27 @@
+//The bounded number of model calls one conversation may make (D3.4 contracted operation).
+//Holds only two ints, so its contracts need no assumptions about other objects.
+//Not thread safe: each AgentRunner.run creates its own and does not share it.
+
 final class AttemptBudget {
 
     static final int MAX_LIMIT = 6;
 
-    private final int limit;
-    private int remaining;
+    private final int limit;    //spec_public
+    private int remaining;      //spec_public
 
+    //public invariant 1 <= limit && limit <= MAX_LIMIT;
+    //public invariant 0 <= remaining && remaining <= limit;
+
+    /* public normal_behavior
+         requires 1 <= limit && limit <= MAX_LIMIT;
+         assignable this.limit, this.remaining;
+         ensures this.limit == limit && this.remaining == limit;
+       also
+       public exceptional_behavior
+         requires limit < 1 || limit > MAX_LIMIT;
+         assignable \nothing;
+         signals_only IllegalArgumentException;
+      */
     AttemptBudget(int limit) {
         if (limit < 1 || limit > MAX_LIMIT) {
             throw new IllegalArgumentException("Limit must be between 1 and " + MAX_LIMIT);
@@ -13,13 +30,35 @@ final class AttemptBudget {
         this.remaining = limit;
     }
     
-    int remaining() {
+    /* public normal_behavior
+         assignable \nothing;
+         ensures \result == remaining;
+    */
+
+    int remaining() {   //pure 
         return remaining;
     }
 
-    int used() {
+    /*public normal_behavior
+        assignable \nothing;
+        ensures \result == limit - remaining;
+    */
+   
+    int used() {        //pure
         return limit - remaining;
     }
+
+    //Uses up one attempt. With none left it fails and changes nothing.
+    /* public normal_behavior
+         requires remaining > 0;
+         assignable remaining;
+         ensures remaining == \old(remaining) - 1;
+       also
+       public exceptional_behavior
+         requires remaining == 0;
+         assignable \nothing;
+         signals_only IllegalStateException;     
+    */
 
     void consume() {
         if (remaining == 0) {

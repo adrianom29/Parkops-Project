@@ -173,7 +173,10 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 
 ### 2026 11 26
 - D3.4 contracts
-    - Added AttemptBudget.java with JML contracts and class invariant; AgentRunner now counts model calls with it (behaviour unchanged)
-    - Added JML contract, loop invariant and loop variant to DomainRules.requireIdentifier
+    - Added AttemptBudget.java, AgentRunner now counts model calls with it (behaviour unchanged)
     - Wrote junit test case D3-J and filled in its TEST_PLAN.md entry
     - Added manual proof explanation and tool status to results/d3.txt
+
+### 2026 11 27
+- Added JML contract, loop invariant and loop variant to DomainRules.requireIdentifier
+- Added JML contract to AgentRunner.java
