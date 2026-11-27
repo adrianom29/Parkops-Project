@@ -179,4 +179,6 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 
 ### 2026 11 27
 - Added JML contract, loop invariant and loop variant to DomainRules.requireIdentifier
-- Added JML contract to AgentRunner.java
+- Added JML contract to AgentRunner.java and AttemptBudget.java
+- Updated README.md for D3
+- Updated results/d3.txt to include a final regression run

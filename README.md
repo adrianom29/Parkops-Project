@@ -1,63 +1,122 @@
-# ParkOps — cumulative individual project starter
+# ParkOps — supervised parking reassignment
 
-Release: 2026-09-15. Read the matching Student Brief before editing.
-This is an exercise starter. A clean compile does not mean the exercise is solved.
-The public checks are expected to fail initially. Preserve them and add your own tests.
-All data is synthetic. No personal paid AI account or model service is needed for the labs.
+EECS 3311 B, Fall 2026, individual project (D1–D3).
 
-## First run
+A booking (B1) sits in a closed space (A17). A model may read the booking, list
+eligible spaces and propose a move. A human operator approves or rejects the
+proposal, and a separate execute step rechecks it before moving the booking once.
+All data is synthetic and all notifications are simulated.
 
-Extract the whole ZIP. Open its starter folder, containing this README and src/Main.java.
-Use JDK 21. Check java -version and javac -version.
+## Requirements
 
-macOS/Linux (or Git Bash on Windows):
+- JDK 21 (scripts compile with `--release 21`). They use `COURSE_JAVA_HOME`, then
+  `JAVA_HOME`, then the `javac` on `PATH`.
+- JUnit Jupiter 6.0.3, only for `test`.
+- Bash (macOS, Linux or Git Bash), or Windows PowerShell.
+
+## Commands
+
+Run from the project root.
 
     bash run.sh compile
-    bash run.sh run
-    bash run.sh check
-    bash setup-junit.sh
-    bash run.sh test
+    bash run.sh lint                 # -Xlint:all
+    bash run.sh check                # plain Java checks, no JUnit needed
+    bash run.sh smoke                # infrastructure checks, local fake HTTP only
+    bash setup-junit.sh              # once; downloads and verifies the JUnit jar
+    bash run.sh test                 # JUnit tests
 
-Windows PowerShell:
+    bash run.sh run d3-demo          # D3: policy change demonstration
+    bash run.sh run agent-scripted   # D2: agent loop with replayed replies
+    bash run.sh run scripted         # D1: pending proposal and rejections
+    bash run.sh run                  # prints the synthetic fixture
+    bash run.sh run live             # agent loop with Gemini (needs a key)
 
-    ./run.ps1 compile
-    ./run.ps1 run
-    ./run.ps1 check
-    ./setup-junit.ps1
-    ./run.ps1 test
+In PowerShell, replace `bash run.sh` with `./run.ps1`, and `bash setup-junit.sh`
+with `./setup-junit.ps1`. To use an already cached JUnit jar, set `JUNIT_JAR` to
+its absolute path.
 
-If local policy blocks PowerShell scripts, use Git Bash or the lab-supported setup;
-do not weaken institution-managed security policies. COURSE_JAVA_HOME may point to
-a supported JDK folder. JAVA_HOME is also respected. Scripts always target Java 21.
+In Git Bash on Windows, if `test` reports that `org.junit.jupiter.api` does not
+exist, give the jar as a relative path:
 
-setup-junit downloads the pinned JUnit 6.0.3 console jar from Maven Central and checks its
-SHA-256. The TA can cache it once and provide JUNIT_JAR as an absolute path instead.
-Compilation and plain Java checks work offline without JUnit. A missing dependency
-is an environment issue; report it separately from failed behavioural checks.
+    JUNIT_JAR=lib/junit-platform-console-standalone-6.0.3.jar bash run.sh test
 
-## Your work
+All modes except `live` are deterministic and call no model.
 
-Implement your domain model and application in D1, then extend the same repository for D2 and D3. The supplied adapter, JSON codec, raw fixture and build scripts are infrastructure. DomainRules and StudentApplication contain explicit TODOs. Their public methods are a small demonstration/testing boundary, not a required internal architecture; you may adapt this boundary with a documented mapping. The existing PDF briefs define acceptance and marks. The initial check/test commands intentionally fail on unimplemented D1 requirements.
+### Live model
 
-## Commands and evidence
+`run live` calls the Google Gemini API. The key is read from `GEMINI_API_KEY` in a
+`.env` file in the project root, then from the environment variable of that name,
+and otherwise is asked for at a hidden prompt. `GEMINI_MODEL` optionally overrides
+the default model, `gemini-3.5-flash-lite`. Never submit `.env` or a key.
 
-- compile: compile source with Java 21 and compiler warnings enabled.
-- run: small starter orientation or deliberately faulty demonstration, not a test suite.
-- check: named plain Java checks, exit 1 when a required behaviour is missing.
-- test: the same supplied cases through JUnit Jupiter plus your added test classes.
-- lint: compile with -Xlint:all. Lab07 deliberately begins with raw/unchecked warnings.
+One JUnit test (D2-N) uses an Ollama endpoint when `OLLAMA_CHAT_URL` (ending
+`/api/chat`) and `OLLAMA_MODEL` are both set.
 
-Each check creates its own objects. Read the case name and assertion message; do not
-delete failing cases or edit the captured output. Add focused Jupiter tests in
-test/junit/StudentTests.java. An all-green public suite is not proof of every requirement.
+## Supported scenarios
 
-For a lab submission include src/, test/, README.md, AI_USE.md and results.txt, plus
-the diagram where the brief requests it. Do not submit build/, lib/, secrets or IDE caches.
-Use the exact ZIP naming and end-of-session submission route in the brief.
-The initial trace/design phase prohibits generative AI; permitted implementation assistance
-must be disclosed. The supplied infrastructure is acknowledged in STARTER_PROVENANCE.md.
+- **Fixture:** booking B1 (requires an accessible space, in closed A17) and spaces
+  A17, B12, C03 and D09.
+- **Policy 1 (default):** a target must be known, open, unoccupied and not the
+  current space. Eligible for B1: B12 and C03.
+- **Policy 2 (D3):** also requires an accessible target when the booking requires
+  one. Eligible for B1: C03 only. A booking that does not require accessibility
+  keeps B12 and C03.
+- **Agent loop:** `READ_BOOKING`, `LIST_ALTERNATIVES`, `PROPOSE_REASSIGNMENT` and
+  `FINISH`, with 1 to 6 model calls. It can create a pending proposal but cannot
+  approve or execute.
+- **Operator workflow:** approve or reject once; execute only an approved proposal
+  whose booking version, policy version and target still pass; repeating an
+  execution does not move the booking or notify again.
+- **Periodic checks:** caller-supplied ticks with a 60-second boundary, one work
+  item per booking, booking version and policy version, and operator retry.
 
-## References
+Approval, rejection, execution, ticks, retry and policy activation are methods on
+`StudentApplication`; `d3-demo` and the tests call them.
 
-- Java 21: https://docs.oracle.com/en/java/javase/21/
-- JUnit 6.0.3 console: https://docs.junit.org/6.0.3/running-tests/console-launcher.html
+## Project layout
+
+| Area | Files in `src/` |
+|---|---|
+| Entry points | `Main`, `StudentApplication` |
+| Coordination | `AgentRunner`, `AttemptBudget`, `PeriodicScanner`, `ReassignmentTools` |
+| Model protocol | `ToolProtocol`, `Tool`, `ToolRequest` |
+| Domain | `ReassignmentPolicy`, `DomainRules`, `Booking`, `Space`, `Proposal`, `ProposalStatus` |
+| Storage | `ParkingInventory`, `ProposalStore`, `NotificationLog` |
+| Model providers | `ModelProvider`, `ReplayProvider`, `GeminiProvider`, `GeminiCredentials`, `OllamaProvider` |
+
+Tests are in `test/junit/` and `test/plain/`. Test cases are mapped in
+`TEST_PLAN.md`, captured output is in `results/`, and the design is explained in
+`DESIGN.pdf`.
+
+## Known limitations
+
+- One booking and four spaces, held in memory. Nothing persists between runs.
+- No interactive operator interface.
+- `run agent-scripted` and `run live` start at policy 1; neither has an option to
+  activate policy 2.
+- Policy 2 cannot be switched back to policy 1 within a run.
+- Not thread safe.
+- All classes are in the default package, so protection of domain objects between
+  layers is a convention rather than a compiler guarantee (see `results/d3.txt`,
+  D3.3).
+- OpenJML has not been run. The contracts on `AttemptBudget` and
+  `DomainRules.requireIdentifier` are supported only by a manual argument and
+  ordinary tests, and cover only those operations.
+- Without the two Ollama variables, D2-N returns early and is reported as passed
+  **without calling any model**. A passing test run is not evidence of live model
+  behaviour.
+
+## Reused starter files and attribution
+
+Supplied by the course starter: `ChatMessage`, `ModelProvider`, `ProposalView`,
+`ReplayProvider`, `OllamaProvider`, `MiniJson`, `Fixture`, the build and JUnit
+setup scripts, `data/`, `test/plain/`, `InfrastructureTest` and
+`SuppliedChecksTest`. `Main`, `StudentApplication`, `DomainRules` and
+`StudentTests` began as starter skeletons that were then implemented.
+
+`GeminiProvider` and `GeminiCredentials` come from the course Gemini connection
+pack; `GeminiCredentials` was extended to also read `.env` and the environment.
+
+See `STARTER_PROVENANCE.md` for the starter's origin and `AI_USE.md` for AI
+assistance. `START_HERE.md` is the original starter guidance, not a description of
+the finished project.
