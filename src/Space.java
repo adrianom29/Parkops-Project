@@ -1,7 +1,7 @@
 public class Space {
     private final String id;
     private boolean open;
-    private final boolean occupied; 
+    private boolean occupied;
     private final boolean accessible;
 
     public Space(String id, boolean open, boolean occupied, boolean accessible){
@@ -35,5 +35,17 @@ public class Space {
     public void close(){
         this.open = false;
     }
-    
+
+    //A committed reassignment occupies the target; only an available space can be taken.
+    public void occupy(){
+        if (!isAvailable()){
+            throw new IllegalStateException("Space (" + id + ") is not available to occupy");
+        }
+        this.occupied = true;
+    }
+    //Frees the space a booking has moved out of. Does not reopen a closed space.
+    public void release(){
+        this.occupied = false;
+    }
+
 }

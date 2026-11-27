@@ -329,3 +329,27 @@ tick 30:  NOT_SCANNED: Boundary not reached yet
 tick 60:  Successfully scanned and emitted work item B1:v0:p2
 tick 120: SCANNED: work item B1:v0:p2 has already been emitted
 exit code 0
+
+==============================================================================
+Occupancy fix and JML comment markers
+Nov 27 2026, JDK 21.0.12.1 (compiled with --release 21)
+Git Bash on Windows 11; working tree after commit 4b66192
+==============================================================================
+
+CHANGES
+- execute() now releases the booking's old space and occupies the target when it
+  commits (Space.occupy/release). Rejected and repeated executions change neither.
+- The D3.4 contracts, invariants and loop annotations were in plain comments.
+  They now start with /*@ or //@ so that JML tools can read them. OpenJML has
+  still NOT been run, so they remain unparsed and unverified.
+- This updates D3.3: occupy() and release() are further public mutators, called
+  only from StudentApplication.execute.
+
+RESULTS (earlier sections above are left as captured)
+bash run.sh check     CHECKS 14; FAILED 0
+bash run.sh test      50 tests found, 50 successful, 0 failed
+                      (new: commitMovesOccupancy, rejectedExecutionKeepsOccupancy;
+                      JUNIT_JAR given as a relative path)
+bash run.sh lint      COMPILE_OK, no warnings
+javac -Xlint:all over test/junit/    exit 0, no warnings
+bash run.sh run d3-demo    exit 0; same outcomes as the run above

@@ -65,7 +65,8 @@ One JUnit test (D2-N) uses an Ollama endpoint when `OLLAMA_CHAT_URL` (ending
   `FINISH`, with 1 to 6 model calls. It can create a pending proposal but cannot
   approve or execute.
 - **Operator workflow:** approve or reject once; execute only an approved proposal
-  whose booking version, policy version and target still pass; repeating an
+  whose booking version, policy version and target still pass; a commit releases the
+  old space and occupies the target; repeating an
   execution does not move the booking or notify again.
 - **Periodic checks:** caller-supplied ticks with a 60-second boundary, one work
   item per booking, booking version and policy version, and operator retry.

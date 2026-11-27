@@ -14,7 +14,7 @@ public final class DomainRules {
     // D1: non-null [A-Z][A-Z0-9_-]{0,15}.
     // D3.4 contract. Assumes id, if not null, is an ordinary (immutable) java.lang.String.
     // Returns normally exactly when id matches; changes no existing state either way.
-    /* public normal_behavior
+    /*@ public normal_behavior
          requires id != null && 1 <= id.length() && id.length() <= 16;
          requires 'A' <= id.charAt(0) && id.charAt(0) <= 'Z';
          requires (\forall int k; 1 <= k && k < id.length();
@@ -32,7 +32,7 @@ public final class DomainRules {
                      || id.charAt(k) == '-' || id.charAt(k) == '_'));
          assignable \nothing;
          signals_only IllegalArgumentException;
-    */
+    @*/
 
     public static void requireIdentifier(/*@ nullable @*/ String id) {
         if (id == null || 
@@ -46,14 +46,14 @@ public final class DomainRules {
         }
 
         //Every character before i has been checked and is allowed.
-        /* maintaining 1 <= i && i <= id.length();
+        /*@ maintaining 1 <= i && i <= id.length();
            maintaining (\forall int k; 1 <= k && k < i;
                            ('A' <= id.charAt(k) && id.charAt(k) <= 'Z')
                         || ('0' <= id.charAt(k) && id.charAt(k) <= '9')
                         || id.charAt(k) == '-' || id.charAt(k) == '_');
            loop_assigns \nothing;
            decreasing id.length() - i;
-        */
+        @*/
        
         for (int i = 1; i < id.length(); i++) {
             char c = id.charAt(i);

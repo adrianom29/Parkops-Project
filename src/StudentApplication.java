@@ -127,11 +127,16 @@ public final class StudentApplication {
         }
 
         Booking booking = inventory.booking();
-        Optional<String> blocker = policy.executionBlocker(p, booking, inventory.space(p.getSpaceId()));
+        Space target = inventory.space(p.getSpaceId());
+        Optional<String> blocker = policy.executionBlocker(p, booking, target);
         if (blocker.isPresent()) {
             return "Proposal " + p.getId() + " unsuccessfully executed: " + blocker.get();
         }
 
+        //All checks have passed: move the occupancy together with the booking.
+        Space previous = inventory.space(booking.getSpaceId());
+        target.occupy();
+        previous.release();
         booking.reassignTo(p.getSpaceId());
         p.markExecuted();
         notifications.record(p);

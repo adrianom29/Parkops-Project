@@ -313,3 +313,21 @@ Add independent Jupiter tests; the supplied suite is deliberately not a complete
 - Expected Result: Remaining reaches 0 and is never negative; the next consume (prohibited pre-state remaining == 0) fails and changes nothing
 - Actual Result: remaining() is 2, 1, 0; fourth consume throws IllegalStateException 'Attempt budget exhausted'; remaining stays 0 and used stays 3
 - Source/Test Method: test/junit/StudentTests.contractedAttemptBudgetReachesLimit()
+
+### Occupancy on commit:
+
+- Preconditions:
+    - StudentApplication loaded from Fixture; A17 occupied and closed
+- Input: Approve and execute a proposal to B12, repeat it, then commit a proposal to C03
+- Expected Result: Each commit releases the old space and occupies the target; a repeat changes nothing
+- Actual Result: A17 released (still closed) and B12 occupied; repeat leaves both snapshots unchanged; second commit releases B12 and occupies C03
+- Source/Test Method: test/junit/StudentTests.commitMovesOccupancy()
+
+### Occupancy after rejected execution:
+
+- Preconditions:
+    - Version-1 proposal to C03 approved; then policy 2 activated
+- Input: Execute the stale proposal
+- Expected Result: Rejection; no occupancy change
+- Actual Result: 'policy version must be 2'; A17 and C03 snapshots unchanged
+- Source/Test Method: test/junit/StudentTests.rejectedExecutionKeepsOccupancy()

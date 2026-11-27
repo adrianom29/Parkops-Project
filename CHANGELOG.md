@@ -179,6 +179,19 @@ Record D1 implementation, D1 feedback fixes, D2 additions and D3 changes here.
 
 ### 2026 11 27
 - Added JML contract, loop invariant and loop variant to DomainRules.requireIdentifier
-- Added JML contract to AgentRunner.java and AttemptBudget.java
+- Added JML contract to AttemptBudget.java
 - Updated README.md for D3
 - Updated results/d3.txt to include a final regression run
+- Work on DESIGN.pdf (D3.5):
+    - Trace of an accepted operation
+    - Trace of a rejected operation
+    - Impact of the change on responsibilities
+    - Design alternatives
+    - Residual limitation
+    - How the tests and checks constrain the conclusion
+    - Diagrams:
+        - UML
+        - Sequence Diagram (accepted and rejected)
+        - Proposal State Diagram
+- Commit now moves occupancy: added Space.occupy/release, called from StudentApplication.execute
+- Recorded the new run in results/d3.txt
